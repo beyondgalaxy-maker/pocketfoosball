@@ -124,17 +124,67 @@
   function installPhysics(physics) {
     const p=physics?.World?.prototype;
     if(!p||p.__rollingDriftAligned)return false;
-    const solve=p.solve,integrate=p.integrateOrientation;
+    const solve=p.solve,integrate=p.integrateOrientation,contact=p.contact,support=p.supportPins;
+    const C=physics.C, inertia=.4*C.mass*C.radius*C.radius;
+    // Finite contact patches resist twisting. This preload is a tuned part of
+    // the existing assisted grip, not a measurement of a particular table.
+    const pinTwistDecel=C.footFriction*3.5*.0018/inertia;
+    const state=new WeakMap();
+    const towardZero=(x,amount)=>Math.sign(x)*Math.max(0,Math.abs(x)-amount);
+    p.contact=function(c,rod,restitution,friction,iteration,kind) {
+      const value=contact.call(this,c,rod,restitution,friction,iteration,kind);
+      const frame=state.get(this);
+      if(frame&&rod&&(kind==='foot'||kind==='body')&&c.depth>=0&&c.depth<.002)frame.contacts.add(rod);
+      return value;
+    };
     // Position is drifted before contacts are resolved. Orient the surface with
     // that same pre-contact spin, not an impulse that happened at the end of the
-    // substep. Ball velocity, contact impulses and rod dynamics are unchanged.
+    // substep. Open-field dynamics remain unchanged; grip settling is below.
     p.solve=function(dt) {
-      this.__rollingDrift=[this.ball.wx,this.ball.wy,this.ball.wz];
+      const b=this.ball, previous=state.get(this);
+      state.set(this,{contacts:new Set(),quiet:previous?.quiet||0,
+        before:[b.x-b.vx*dt,b.y-b.vy*dt],pin:false,rest:false});
+      this.__rollingDrift=[b.wx,b.wy,b.wz];
       return solve.call(this,dt);
     };
+    p.supportPins=function(dt) {
+      const result=support.call(this,dt), b=this.ball, frame=state.get(this);
+      if(!frame)return result;
+      const pin=this.rods.find(r=>r.pinJoint);
+      const grounded=b.z<C.radius+.0004&&Math.abs(b.vz)<.02;
+      if(pin&&grounded) {
+        // The supported ball rolls with its centre; it does not retain an
+        // independent treadmill-like horizontal spin under a holding foot.
+        b.wz=towardZero(b.wz,pinTwistDecel*dt);frame.pin=true;
+      }
+      const calm=r=>Math.abs(r.vy)<.004&&Math.abs(r.omega)<.06&&Math.abs(r.targetY-r.y)<.0001;
+      const held=pin?calm(pin):[...frame.contacts].some(r=>calm(r)&&(r.catchHeld||r.directGrip));
+      const speed=Math.hypot(b.vx,b.vy);
+      if(grounded&&held&&speed<.006) {
+        frame.quiet+=dt;
+        if(!pin&&frame.quiet>.08) {
+          // Only confirmed, quiet two-surface contact gets extra settling.
+          // No proximity radius, attraction, or damping zone in open play.
+          const damping=Math.exp(-65*dt);
+          b.wx=-b.vy/C.radius+(b.wx+b.vy/C.radius)*damping;
+          b.wy=b.vx/C.radius+(b.wy-b.vx/C.radius)*damping;
+          b.wz=towardZero(b.wz,260*dt);
+        }
+        if(frame.quiet>.09&&speed<.0003&&Math.hypot(b.wx,b.wy,b.wz)<.045) {
+          b.vx=b.vy=b.vz=b.wx=b.wy=b.wz=0;frame.rest=true;
+        }
+      }else frame.quiet=0;
+      return result;
+    };
     p.integrateOrientation=function(dt) {
-      const spin=this.__rollingDrift;this.__rollingDrift=null;
+      let spin=this.__rollingDrift;this.__rollingDrift=null;
       if(!spin)return integrate.call(this,dt);
+      const frame=state.get(this),b=this.ball;
+      if(frame?.pin) {
+        // Use net constrained centre travel, not velocity before penetration
+        // correction. This also gives the right direction when walking a pin.
+        spin=[-(b.y-frame.before[1])/(C.radius*dt),(b.x-frame.before[0])/(C.radius*dt),b.wz];
+      }else if(frame?.rest)spin=[0,0,0];
       const q=advance(this.ball,spin,dt),n=Math.hypot(q.qx,q.qy,q.qz,q.qw);
       for(const k of ['qx','qy','qz','qw'])this.ball[k]=q[k]/n;
     };
@@ -144,7 +194,7 @@
     if(!game?.SoccerBall)return false;
     installPhysics(root.Foos);
     game.SoccerBall.draw=draw;game.SoccerBall.rotate=rotate;game.SoccerBall.faces=faces.length;
-    game.rolling={camera,projection,rotate,advance,shutter,stats};game.version='8.0.1';return true;
+    game.rolling={camera,projection,rotate,advance,shutter,stats};game.version='9.0.0';return true;
   }
   return {camera,projection,rotate,advance,shutter,draw,install,installPhysics,stats,faces};
 });
