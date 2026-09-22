@@ -3,7 +3,9 @@ on:
   push:
     branches: [main]
     paths:
-      - app.js
+      - '*.js'
+      - index.html
+      - styles.css
       - .github/workflows/verify-upload.yml
   workflow_dispatch:
 permissions:
@@ -27,7 +29,6 @@ jobs:
           content = path.read_bytes()
           def blob_sha(data):
               return hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
-          # Repair only this exact known transfer typo; never rewrite arbitrary code.
           if blob_sha(content) == '1696784d9c143dd81cb5677bfd4e9d1f7b999338':
               content = content.replace(b'const n=e.finishes.reduce(((t,e)=>t+e.blocked,0)', b'const n=e.finishes.reduce(((t,e)=>t+e.blocked),0)', 1)
               assert blob_sha(content) == '2f2a31803d9aec379866701cb2284abd565dae78'
@@ -48,3 +49,14 @@ jobs:
             git pull --rebase origin main
             git push origin HEAD:main
           fi
+      - name: Save verified static assets
+        uses: actions/upload-artifact@v7
+        with:
+          name: pocketfoosball-assets
+          path: |
+            *.js
+            *.html
+            *.css
+            README.md
+          retention-days: 7
+          if-no-files-found: error
