@@ -1,62 +1,45 @@
-name: Verify application upload
+name: Test Pocket Foosball
 on:
   push:
     branches: [main]
     paths:
       - '*.js'
+      - '*.cjs'
+      - '*.py'
       - index.html
       - styles.css
       - .github/workflows/verify-upload.yml
+  pull_request:
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 concurrency:
-  group: verify-application-upload
-  cancel-in-progress: false
+  group: pocketfoosball-checks-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-        with:
-          ref: main
-      - name: Verify exact application asset
-        shell: python
-        run: |
-          from pathlib import Path
-          import hashlib
-          path = Path('app.js')
-          content = path.read_bytes()
-          def blob_sha(data):
-              return hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
-          if blob_sha(content) == '1696784d9c143dd81cb5677bfd4e9d1f7b999338':
-              content = content.replace(b'const n=e.finishes.reduce(((t,e)=>t+e.blocked,0)', b'const n=e.finishes.reduce(((t,e)=>t+e.blocked),0)', 1)
-              assert blob_sha(content) == '2f2a31803d9aec379866701cb2284abd565dae78'
-              path.write_bytes(content)
-          print('Application Git blob SHA:', blob_sha(content))
       - name: Check JavaScript syntax
         run: |
-          node --check app.js
-          node --check engine.js
-          node --check input.js
-      - name: Commit verified correction only when necessary
-        run: |
-          if ! git diff --quiet -- app.js; then
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add app.js
-            git commit -m 'Restore exact tested v8 application asset'
-            git pull --rebase origin main
-            git push origin HEAD:main
-          fi
-      - name: Save verified static assets
+          for file in *.js; do node --check "$file"; done
+      - name: Test rolling, recovery and adaptive controls
+        run: node v8-tests.cjs
+      - name: Build standalone game
+        run: python3 build.py
+      - name: Save tested game and report
         uses: actions/upload-artifact@v7
         with:
           name: pocketfoosball-assets
           path: |
             *.js
+            *.cjs
             *.html
             *.css
-            README.md
+            *.py
+            *.md
+            v8-test-results.json
+            site/index.html
           retention-days: 7
           if-no-files-found: error
