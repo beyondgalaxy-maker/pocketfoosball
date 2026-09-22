@@ -1,32 +1,26 @@
-# Pocket Foosball — Touchline 08
+# Pocket Foosball — Touchline 09
 
-A browser foosball game for touchscreens, mouse and keyboard. Current version: **8.0.1**.
+A browser foosball game for touchscreens, mouse and keyboard. Current version: **9.0.0**.
 
 ## Play online
 
-The complete game is in this repository. GitHub Pages was **not enabled** at the release check on September 22, 2026.
-
-Open **Settings → Pages → Build and deployment → Deploy from a branch**, choose **main** and **/(root)**, then **Save**. No build command, package installation, account in the game, or API key is needed. Once GitHub completes deployment, the address is:
-
 **https://beyondgalaxy-maker.github.io/pocketfoosball/**
 
-The verification workflow tests the game and saves a downloadable artifact; it does not enable Pages or claim that deployment has happened.
+The public HTTPS website is live. On September 22, 2026, the release check opened the actual website in fresh Chromium profiles without a login, verified all six runtime assets against the tested files, played in desktop and phone-sized viewports, and confirmed saved keybindings survive a full page reload. See [V9-NOTES.md](V9-NOTES.md) for measurements and limits.
 
-## What changed
+No GitHub account, game account, installation or API key is needed to play. Reload an already-open tab to load the updated version; the title shows Touchline 09.
 
-**Rolling that matches the table:** the soccer panels use the table's actual camera projection, physical ball radius and simulation orientation. Position drift and angular integration use the same substep timing. Real skids, backspin and airborne spin are retained. Fast rotation gets a small sampled blur instead of a fake slower spin.
+## Changes in version 9
 
-**Visible stuck-ball recovery:** a genuinely unreachable resting ball shows a three-second warning and a manual re-serve button, including in Table only mode. Recovery then starts the normal one-second ready period. Pausing freezes the countdown; a newly playable ball cancels it. Auto re-serve can be disabled.
+**A caught ball settles instead of spinning in place.** Confirmed quiet foot contact gets bounded spin settling, and a supported pin resists residual twisting. When you walk a pin sideways, its visible rotation follows actual constrained centre travel. Free-field rolling, skids, backspin and airborne motion are not subjected to the new catch damping. This remains a tuned assisted-contact model, not real-table calibration.
 
-**Adaptive opponents:** Expert and Elite re-read moving defenders and retain bounded shot-outcome experience between rallies. New matches start fresh. Keepers have a deliberate physical release for persistent back-rail clamps rather than trying the same blocked stroke forever.
-
-**Cleaner menu:** Match, Controls and Display tabs; named opponent cards; all five skill levels for each profile; a persistent Play/Resume button; Table only, Side view and All controls presets.
+**Editable keyboard controls.** Open **Menu → Controls → Keyboard · remap keys & sensitivity**. Click a key and press its replacement. Each Mint row has separate up, down and shoot bindings. Expand **Selection, modifiers & second player** for boost, soft-pass, rotation, pin, raise and selection bindings. Escape cancels; Backspace clears the selected binding. Duplicate keys are rejected with the conflicting action named. Restore default keys does not reset sensitivity. Bindings are saved on this browser; blocked storage falls back to the current tab and reports that limitation.
 
 ## Controls
 
 Drag an on-table handle or its dock to slide and rotate the whole rod. Landscape: up/down slides, left strikes for Mint. Portrait: left/right slides, up strikes for Mint. Coral's touch controls face the opposite player in shared-screen mode.
 
-Mint's keyboard rows, left to right in landscape:
+Default Mint keyboard rows, left to right in landscape:
 
 | Row | Slide | Shoot |
 | --- | --- | --- |
@@ -35,18 +29,22 @@ Mint's keyboard rows, left to right in landscape:
 | Midfield | E / D | C |
 | Attack | R / F | V |
 
-Hold **Shift or Space** for faster sliding. **Alt + shot** is a soft pass. **1–4** selects a rod, **G** pins/releases, **B** raises/lowers, and **P** pauses. Mouse and keyboard work together. Fine speed, fast speed, power, pointer slide and pointer rotation have separate settings.
+Default modifiers: **Shift or Space** slides faster, **Alt + shot** makes a soft pass. **1–4** selects a rod, **G** pins/releases, **B** raises/lowers and **P** pauses. These are editable. Escape stays available for the menu and Tab for navigation. Mouse and keyboard work together; a mouse-held rod takes priority over its keys. Fine speed, fast speed, shot power, pointer slide and pointer rotation have separate settings.
 
-A slow deliberate raise stays at its angle. A fast whip followed by release can auto-ready. Holding still after a whip preserves the selected angle. In Table only mode, holding a handle still briefly arms a nearby slow-ball pin.
+A slow deliberate raise stays at its angle. A fast whip followed by release can auto-ready. Holding still after a whip preserves the selected angle. Table only mode hides extra controls while retaining the handles and small menu/restore buttons.
 
-## Opponents
+## Modes and opponents
 
-Bob favors quick attacks; Maya builds passes; Theo prefers controlled pins; Iris reads openings; Kai favors combinations. Every profile supports Easy, Medium, Hard, Expert and Elite. There are 13 move families, not every professional trick. These are fictional skill profiles, not rated Elo opponents.
+Solo, practice and local shared-screen two-player remain available. Bob favors quick attacks; Maya builds passes; Theo prefers controlled pins; Iris reads openings; Kai favors combinations. Every profile supports Easy, Medium, Hard, Expert and Elite. There are 13 move families, not every professional trick. These are fictional skill profiles, not measured Elo ratings.
 
-## Source, build and tests
+A genuinely unreachable resting ball gets a visible auto-recovery countdown, followed by the one-second ready period. Reachable catches are not dead balls. Camera options include the side view, cross-section and Off.
 
-The repository root is the deployable site. `engine.js`, `input.js` and `app.js` are compact deployment files. The commented `rolling.js` and `bot-control.js` modules contain the latest rendering/integration and keeper-recovery changes.
+## Build and verification
 
-Run `python3 build.py` to produce a standalone **touchline.html** and **site/index.html**. Run `node v8-tests.cjs` for the 27 focused checks also run by GitHub Actions. The accompanying source package contains the larger numerical and emulated-browser regression suites and their reports.
+The repository root is the deployable static site. Run `python3 build.py` to generate standalone `touchline.html` and `site/index.html`.
 
-See **VALIDATION.md** for measured results and limits. This is an assisted, tuned simulation—not a calibrated real table, a full tournament-rules implementation, or a verified professional-strength opponent. Physical-phone and Safari testing remain outstanding. Two-player mode is local/shared-screen, not network multiplayer.
+Run `node v8-tests.cjs` and `node v9-tests.cjs` for the 41 focused numerical/input checks in GitHub Actions. The downloadable source package also contains the larger regression suites: **157 numerical/input checks and 278 local Chromium browser checks passed for v9**.
+
+`site-smoke.py` checks the actual public website with Playwright, not an injected preview. The successful v9 run passed **27 public-site checks**, including normal page navigation, real origin storage, reload, keyboard release and emulated touch input. CI has read-only repository permissions. It does not alter Pages settings or store account credentials.
+
+See [V9-NOTES.md](V9-NOTES.md) for the current report; `VALIDATION.md` records the earlier v8 baseline. Physical-phone hardware and Safari remain untested. The game is an assisted simulation, not a calibrated table, full tournament-rules implementation or verified professional-strength opponent. Two-player is shared-screen, not online network multiplayer.
