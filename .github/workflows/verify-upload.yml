@@ -1,0 +1,50 @@
+name: Verify application upload
+on:
+  push:
+    branches: [main]
+    paths:
+      - app.js
+      - .github/workflows/verify-upload.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: verify-application-upload
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+      - name: Verify exact application asset
+        shell: python
+        run: |
+          from pathlib import Path
+          import hashlib
+          path = Path('app.js')
+          content = path.read_bytes()
+          def blob_sha(data):
+              return hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
+          # Repair only this exact known transfer typo; never rewrite arbitrary code.
+          if blob_sha(content) == '1696784d9c143dd81cb5677bfd4e9d1f7b999338':
+              content = content.replace(b'const n=e.finishes.reduce(((t,e)=>t+e.blocked,0)', b'const n=e.finishes.reduce(((t,e)=>t+e.blocked),0)', 1)
+              assert blob_sha(content) == '2f2a31803d9aec379866701cb2284abd565dae78'
+              path.write_bytes(content)
+          print('Application Git blob SHA:', blob_sha(content))
+      - name: Check JavaScript syntax
+        run: |
+          node --check app.js
+          node --check engine.js
+          node --check input.js
+      - name: Commit verified correction only when necessary
+        run: |
+          if ! git diff --quiet -- app.js; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add app.js
+            git commit -m 'Restore exact tested v8 application asset'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
