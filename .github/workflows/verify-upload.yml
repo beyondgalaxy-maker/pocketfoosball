@@ -19,16 +19,30 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - name: Check JavaScript syntax
         run: |
           for file in *.js; do node --check "$file"; done
-      - name: Test rolling, recovery and adaptive controls
-        run: node v8-tests.cjs
+      - name: Test rolling, recovery, adaptive controls and keybindings
+        run: |
+          node v8-tests.cjs
+          node v9-tests.cjs
       - name: Build standalone game
         run: python3 build.py
-      - name: Save tested game and report
+      - name: Install browser for public-site verification
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          python3 -m pip install playwright
+          python3 -m playwright install --with-deps --only-shell chromium
+      - name: Verify deployed website without login
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: python3 site-smoke.py
+      - name: Save tested game and reports
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: pocketfoosball-assets
@@ -39,7 +53,9 @@ jobs:
             *.css
             *.py
             *.md
-            v8-test-results.json
+            *test-results.json
+            site-check-results.json
+            site-check/*.png
             site/index.html
           retention-days: 7
           if-no-files-found: error
