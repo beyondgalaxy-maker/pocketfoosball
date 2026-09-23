@@ -1,37 +1,45 @@
-# Pocket Foosball — Touchline 10
+# Pocket Foosball — Touchline 11
 
-**Play: https://beyondgalaxy-maker.github.io/pocketfoosball/?v=10**
+**Play: https://beyondgalaxy-maker.github.io/pocketfoosball/?v=11**
 
-A browser foosball game for touchscreens, mouse and keyboard. Version **10.0.0** is live and checked without a login. Reload an already-open tab to load Touchline 10. No game account, installation or API key is required.
+A browser foosball game for touch, mouse and keyboard. Version **11.0.0** adds private online matches, a nearly transparent overlay, and sideways wall releases. Reload an old tab to get Touchline 11. No player account or installation is needed.
 
-## New in version 10
+## Play a friend online
 
-**Double-tap a control to ready that row.** Mouse double-click works too. Figures return to their ready angle, releasing an armed pin and cancelling a pending whip. The rod keeps its sideways position. Dragging or holding deliberately is not a double tap.
+Open **Menu → Match → Online**, then **Create private room**. Copy the invite and send it privately to your opponent. Your friend opens the link and presses **Join**; a room code also works. Both press **Ready to play**. The first player to five wins, and both can ready up for a rematch.
 
-**Menu → Display → Overlay buttons** floats the four normal handles and PIN button over the full-size table instead of shrinking it to make room for a dock. The small score, menu and restore controls remain visible. The preference is saved; pure Table only and the regular layout are still available. Local two-player adds a mirrored opposing dock.
+Both players see themselves at the Mint end, using their own familiar touch, mouse or saved keyboard controls. The host computes the ball and goals; the guest sends bounded rod controls. The game mirrors the guest's view rather than requiring backwards controls. A connection badge shows round-trip latency.
 
-**Practice Re-serve is always available during play**, including Overlay and Table only, independent of whether the ball is reachable. It resets the current drill.
+Keep both tabs open. Opening a menu pauses the shared simulation. A lost connection freezes play rather than giving away goals. After an actual disconnect, leave and create another room; there is no host migration or automatic session reconnection.
 
-**Recovery handles small numerical chatter and bot stalls separately.** An unreachable ball that remains in a tiny area can now start the normal three-second recovery countdown even if its speed fluctuates slightly. A bot-held ball first gets physical clearing attempts. Repeated failure can trigger a separately labeled Bot possession timeout, followed by a three-second warning and a re-serve to the human. This last resort is a gameplay safeguard, not proof that every jam is solved physically. Pause, cancellation on progress and the user's auto-recovery setting are respected.
+GitHub Pages hosts the static game, not a multiplayer server. Online mode loads PeerJS 1.5.5 and uses its community signaling/connection services with WebRTC data channels. No camera or microphone is requested. Offline modes do not load that library. This is casual private multiplayer, not ranked matchmaking; external service availability, restrictive networks and latency still matter. See [V11-NOTES.md](V11-NOTES.md) for the architecture, tests and limits.
 
-**Medium is softer.** It selects basic direct shots or stick passes, not spray/brush/snake/tic-tac routines. Visual delay is 380 ms, changing to a new handle takes 320 ms, extrapolation is reduced and defense has a lower movement cap. Easy is slower again. Hard, Expert and Elite retain their core shot planning. The five personalities remain; difficulty is not a measured Elo rating.
+## Clearer overlay, same full-size table
 
-**PIN is deliberate.** In Overlay mode the visible PIN control replaces automatic hold-to-pin, so a gentle backwards touch need not become a supported pin. Arming PIN with the foot already close above the ball lowers the remaining small angle instead of making a long rotation. Quiet-catch spin settling and camera-correct rolling remain.
+Under **Menu → Display**, enable **Overlay buttons**. The background is only **8% opaque** by default, with no blur covering the table. **Overlay shading** adjusts it from 3% to 30%; the preference saves in this browser. Outlines and labels remain visible, and the pressed control becomes clearer.
 
-## Controls
+Midfield and Attack grips are approximately 36% wider than Keeper and Defense. Controls remain at least 44 CSS pixels high in the tested layouts. The overlay does not reserve layout space: table scale is identical to Table only. PIN, the score and the Practice Re-serve button remain accessible.
 
-Drag an on-table handle or its dock to slide and rotate a complete rod. Landscape: up/down slides and left strikes for Mint. Portrait: left/right slides and up strikes for Mint. Coral's controls face the opposite player in shared-screen mode.
+## Sideways wall release
 
-Default keyboard columns are Q/A/Z for Keeper, W/S/X for Defense, E/D/C for Midfield, and R/F/V for Attack. Shift or Space slides faster; Alt plus the shot key makes a soft pass. G pins/releases and B raises/lowers. **Menu → Controls → Keyboard · remap keys & sensitivity** changes these bindings. Duplicate bindings are rejected; preferences are saved independently from sensitivity. Mouse and keyboard work together.
+With PIN off, bring the edge figure beside a ball against the sidewall. Give the rod a sharp sideways push into that contact, then relax or pull away. The brief yielding grip and a correctly timed wall collision can produce a small sideways rebound. Simply holding pressure does not create perpetual bouncing.
 
-A slow raise stays at its angle. A fast whip followed by release can auto-ready; a deliberate hold after the whip preserves the angle. The original slow/fast input rules remain.
+This is a tuned grip/bumper-compliance approximation, not measured ball deformation. It does not directly assign a new ball velocity. Gentle pressure, free rolling and rotating forward/back wall shots retain their separate behavior.
 
-## Verification and scope
+## Existing controls and modes
 
-The final local source suites passed **173 numerical/input checks and 74 current browser checks**. The actual public HTTPS website passed **28 additional checks** in [this GitHub Actions run](https://github.com/beyondgalaxy-maker/pocketfoosball/actions/runs/35813254845), covering fresh desktop, portrait and landscape Chromium profiles, touch neutral reset, Overlay, practice reset, actual origin storage and reload. All runtime assets matched the tested release byte for byte.
+Double-tap a handle or double-click with a mouse to return that row's figures to their ready angle without recentering the rod sideways. Slow raises stay raised; a fast whip followed by release can auto-ready.
 
-[V10-NOTES.md](V10-NOTES.md) records current mechanics, synthetic benchmarks, test changes and limitations. Earlier versioned reports are historical. This is an assisted simulation, not a calibrated real table, complete tournament-rules implementation or verified professional-strength bot. Physical phone hardware and Safari remain untested. Two-player means local/shared-screen, not network multiplayer.
+Keyboard defaults: **Q/A + Z** Keeper, **W/S + X** Defense, **E/D + C** Midfield, **R/F + V** Attack. Shift or Space slides faster; Alt + shot makes a soft pass. These keys and sensitivity settings are editable under **Menu → Controls → Keyboard · remap keys & sensitivity**. Keyboard, mouse and touch work together.
 
-## Build
+Solo still has five personalities at five difficulty levels, including the reduced Medium repertoire and handle-switch delay. Practice keeps an always-available Re-serve button. Shared-screen two-player is separate from Online. Unreachable balls use a visible countdown; persistent bot possession failures have a separate recovery safeguard.
 
-The repository root is the static website. `python3 build.py` produces standalone `touchline.html` and `site/index.html`. The verification workflow runs v8/v9/v10 focused regressions and `site-v10.py` against the public site using read-only repository permissions. The downloadable source package includes the larger local regression and browser suites.
+## Verification and building
+
+The root files are the published website. `python3 build.py` produces a standalone `touchline.html` and `site/index.html`. Solo, Practice and shared-screen play work offline in that file; use the HTTPS website for online rooms and working share links.
+
+Run the numerical suites through `.github/workflows/verify-upload.yml`. `site-v11.py` checks the actual deployed files and phone layouts without a login. `network-v11.py` creates a real PeerJS room and plays through a real WebRTC connection; set `GAME_URL` to choose the public site rather than a local CI server.
+
+The successful public release run is https://github.com/beyondgalaxy-maker/pocketfoosball/actions/runs/35817463052. It passed **30 public-site checks and 27 real online-session checks**. The complete downloadable source package also includes the broader **192 numerical/input checks, 89 local browser checks and 16 simulated-latency integration checks**. These categories are distinct, not independent human play sessions.
+
+Two browser contexts on one CI runner are not a test of separate home/mobile networks. Physical Android/iPhone hardware, Safari, all carrier NATs and sustained high-latency play remain unverified. The physics remains an assisted simulation, not a calibrated real table or a complete tournament rules engine.
