@@ -1,0 +1,11 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('fs'),F=require('./engine');require('./rolling').installPhysics(F);require('./bot-control')(F);require('./v11').installPhysics(F);require('./v12').installPhysics(F);const N=require('./online');
+const results=[];function test(name,fn){try{const metrics=fn();results.push({name,passed:true,metrics});console.log('PASS',name,metrics||'');}catch(e){results.push({name,passed:false,error:e.stack});console.error(e);}}
+function fixture(id,side){const w=new F.World(),g=new F.World();w.rules=false;for(const r of w.rods){r.motor=false;r.theta=Math.PI/2;}
+ const r=w.rods[id];r.motor=true;r.theta=r.targetTheta=.3;r.directGrip=true;r.targetY=side*r.limit;r.y=side*(r.limit-.065);r.vy=side*.9;r.slideScale=1;
+ const input=g.rods[7-id];input.targetY=-r.targetY;input.targetTheta=-r.targetTheta;input.controlled=true;input.directGrip=true;
+ Object.assign(w.ball,{x:r.x+Math.sin(.3)*.064,y:side<0?F.C.radius+.0001:F.C.width-F.C.radius-.0001,z:F.C.radius,vx:0,vy:0,vz:0,wx:0,wy:0,wz:0});return {w,g,r,input};}
+test('Repeated network packets cannot re-clamp a completed wall rebound',()=>{const metrics=[];for(const id of [2,4,6,7])for(const side of [-1,1]){const {w,g}=fixture(id,side);for(let i=0;i<240;i++){if(i%8===0)N.applyInput(w,N.captureInput(g,i,1,false),F);w.step();}const gap=side<0?w.ball.y-F.C.radius:F.C.width-F.C.radius-w.ball.y;assert.ok(gap>.01);metrics.push({id,side,clearanceMm:gap*1000});}return metrics;});
+test('Fresh hand movement remains possible after consumed network preload',()=>{const {w,g,r,input}=fixture(2,1);for(let i=0;i<240;i++){if(i%8===0)N.applyInput(w,N.captureInput(g,i,1,false),F);w.step();}input.targetY=0;N.applyInput(w,N.captureInput(g,300,1,false),F);for(let i=0;i<180;i++)w.step();assert.ok(Math.abs(r.y)<.005);});
+test('A new rally clears the consumed-rail input state',()=>{const {w,g}=fixture(2,1);for(let i=0;i<240;i++){if(i%8===0)N.applyInput(w,N.captureInput(g,i,1,false),F);w.step();}assert.ok(w.__railConsumedTargets.size);w.reset();assert.equal(w.__railConsumedTargets.size,0);});
+const passed=results.filter(r=>r.passed).length;fs.writeFileSync('rail-intent-test-results.json',JSON.stringify({passed,total:results.length,results},null,2));process.exitCode=passed===results.length?0:1;
