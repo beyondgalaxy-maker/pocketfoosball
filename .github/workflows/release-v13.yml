@@ -1,0 +1,88 @@
+name: Validate and activate Touchline 13
+on:
+  push:
+    branches: [main]
+    paths:
+      - v13.js
+      - v13-tests.cjs
+      - browser-v13.py
+      - upgrade-v13.py
+      - prepare-v13.py
+      - .github/workflows/release-v13.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: activate-touchline-13
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+      - name: Check the exact tested new sources
+        shell: python
+        run: |
+          from pathlib import Path
+          import hashlib
+          expected = {
+            'v13.js': 'f0906649db4d1cd7f6d5e20dc22c2dd3e671d390',
+            'v13-tests.cjs': '283f0ddd0638b5014a3a65d9e3c3f49232bf9b6c',
+            'upgrade-v13.py': 'da0772e52c00a9875a5d0eaa6959a211320eff83',
+            'prepare-v13.py': 'f378ed762038d96614c05aec214368bd3c0c7e0f',
+            'browser-v13.py': 'eddfe4857b513f2afce211fd637ff8bb82bb313f'
+          }
+          for name, sha in expected.items():
+              data = Path(name).read_bytes()
+              actual = hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+              print(name, actual)
+              assert actual == sha, 'Transfer differs from tested source: '+name
+      - name: Stage the guarded integrations
+        run: |
+          python3 upgrade-v13.py
+          python3 prepare-v13.py
+          for file in *.js; do node --check "$file"; done
+          python3 build.py
+      - name: Verify contacts, gestures, recovery and all bot hand budgets
+        run: |
+          for suite in v8-tests.cjs v9-tests.cjs v10-tests.cjs v11-tests.cjs v12-tests.cjs rail-intent-tests.cjs v13-tests.cjs; do
+            node --require ./tests-preload-v13.cjs "$suite"
+          done
+      - name: Install browser
+        run: |
+          python3 -m pip install playwright
+          python3 -m playwright install --with-deps --only-shell chromium
+      - name: Test native touch and real connected play before publishing
+        run: |
+          python3 browser-v13.py
+          python3 network-v13.py
+      - name: Activate only the tested integration files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add bot-control.js v12.js online.js index.html build.py network-v13.py site-v13.py tests-preload-v13.cjs
+          if ! git diff --cached --quiet; then
+            git commit -m 'Activate tested v13 tap controls and two-hand contact mechanics'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+      - name: Retain source and actual test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pocketfoosball-v13-staged
+          path: |
+            *.js
+            *.cjs
+            *.html
+            *.css
+            *.py
+            *.md
+            *test-results.json
+            browser-check-v13/
+            network-check-v13/
+          retention-days: 7
+          if-no-files-found: error
