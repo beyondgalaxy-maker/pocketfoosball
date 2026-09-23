@@ -13,6 +13,8 @@ def upgrade(root):
     replace_once(root/'index.html','<script src="v12.js"></script>','<script src="v12.js"></script>\n<script src="v13.js"></script>')
     replace_once(root/'build.py', "'v12.js')", "'v12.js', 'v13.js')")
     replace_once(root/'online.js','const VERSION=12,','const VERSION=13,')
+    # A remote idle target is not a new local auto-ready gesture.
+    replace_once(root/'online.js', "if(r.team!==1)continue;const pin=!!(flags&8);", "if(r.team!==1)continue;r.grip='remote';const pin=!!(flags&8);")
     text=(root/'online.js').read_text().replace('pocketfoosball12-', 'pocketfoosball13-')
     (root/'online.js').write_text(text)
 
