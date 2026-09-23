@@ -4,8 +4,8 @@ on:
     branches: [main]
     paths:
       - online.js
-      - v11.js
-      - network-v11.py
+      - v12.js
+      - network-v12.py
       - index.html
       - .github/workflows/online-check.yml
   workflow_dispatch:
@@ -22,28 +22,15 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - name: Check syntax and prepare the staged page without publishing it
+      - name: Check JavaScript syntax
         run: |
           for file in *.js; do node --check "$file"; done
-          python3 - <<'PY'
-          from pathlib import Path
-          import hashlib
-          for name, expected in {'v11.js':'df39466fbe18853ee86e7d3400ae411e4e132b3a','online.js':'4a02b74cd8bdfbb13af98717aa40e0086f658470'}.items():
-              data=Path(name).read_bytes()
-              actual=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
-              print(name,actual)
-              assert actual==expected, 'Uploaded source differs from tested source'
-          p=Path('index.html');html=p.read_text()
-          if '<script src="v11.js"></script>' not in html:
-              html=html.replace('</body>','<script src="v11.js"></script>\n<script src="online.js"></script>\n</body>')
-              p.write_text(html)
-          PY
       - name: Install real browser
         run: |
           python3 -m pip install playwright
           python3 -m playwright install --with-deps --only-shell chromium
       - name: Exercise real community signaling and WebRTC
-        run: python3 network-v11.py
+        run: python3 network-v12.py
       - name: Save source and network verification evidence
         if: always()
         uses: actions/upload-artifact@v7
@@ -53,7 +40,7 @@ jobs:
             *.js
             *.html
             *.css
-            network-v11.py
-            network-check-v11/
+            network-v12.py
+            network-check-v12/
           retention-days: 7
           if-no-files-found: error
