@@ -28,7 +28,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import hashlib
-          for name, expected in {'v11.js':'63309d376055b36e114eb95bb72c56575c9a507d','online.js':'4a02b74cd8bdfbb13af98717aa40e0086f658470'}.items():
+          for name, expected in {'v11.js':'df39466fbe18853ee86e7d3400ae411e4e132b3a','online.js':'4a02b74cd8bdfbb13af98717aa40e0086f658470'}.items():
               data=Path(name).read_bytes()
               actual=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
               print(name,actual)
