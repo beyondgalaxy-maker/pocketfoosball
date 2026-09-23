@@ -29,8 +29,9 @@ jobs:
           for file in *.js; do node --check "$file"; done
       - name: Test contacts, recovery, input and multiplayer protocol
         run: |
-          for suite in v8-tests.cjs v9-tests.cjs v10-tests.cjs v11-tests.cjs; do
-            node -e "const F=require('./engine');require('./rolling').installPhysics(F);require('./bot-control')(F);require('./v11').installPhysics(F);require('./$suite')"
+          node probe-v12.cjs
+          for suite in v8-tests.cjs v9-tests.cjs v10-tests.cjs v11-tests.cjs v12-tests.cjs rail-intent-tests.cjs; do
+            node -e "const F=require('./engine');require('./rolling').installPhysics(F);require('./bot-control')(F);require('./v11').installPhysics(F);require('./v12').installPhysics(F);require('./$suite')"
           done
       - name: Build standalone game
         run: python3 build.py
@@ -39,14 +40,14 @@ jobs:
         run: |
           python3 -m pip install playwright
           python3 -m playwright install --with-deps --only-shell chromium
-      - name: Verify exact deployed assets and phone layouts without login
+      - name: Verify exact deployed assets and saved touch layouts without login
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        run: python3 site-v11.py
+        run: python3 site-v12.py
       - name: Play a real online match on the public website
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         env:
-          GAME_URL: https://beyondgalaxy-maker.github.io/pocketfoosball/?v=11
-        run: python3 network-v11.py
+          GAME_URL: https://beyondgalaxy-maker.github.io/pocketfoosball/?v=12
+        run: python3 network-v12.py
       - name: Save tested game and reports
         if: always()
         uses: actions/upload-artifact@v7
@@ -60,8 +61,9 @@ jobs:
             *.py
             *.md
             *test-results.json
-            site-check-v11/
-            network-check-v11/
+            rail-v12-comparison.json
+            site-check-v12/
+            network-check-v12/
             site/index.html
           retention-days: 7
           if-no-files-found: error
