@@ -32,7 +32,7 @@ jobs:
             'v13.js': 'f0906649db4d1cd7f6d5e20dc22c2dd3e671d390',
             'v13-tests.cjs': '283f0ddd0638b5014a3a65d9e3c3f49232bf9b6c',
             'upgrade-v13.py': 'da0772e52c00a9875a5d0eaa6959a211320eff83',
-            'prepare-v13.py': 'f378ed762038d96614c05aec214368bd3c0c7e0f',
+            'prepare-v13.py': '2e5d85c374593b868540d760626d8b3ea563e277',
             'browser-v13.py': 'eddfe4857b513f2afce211fd637ff8bb82bb313f'
           }
           for name, sha in expected.items():
@@ -48,6 +48,7 @@ jobs:
           python3 build.py
       - name: Verify contacts, gestures, recovery and all bot hand budgets
         run: |
+          node --require ./tests-preload-v13.cjs probe-v13.cjs
           for suite in v8-tests.cjs v9-tests.cjs v10-tests.cjs v11-tests.cjs v12-tests.cjs rail-intent-tests.cjs v13-tests.cjs; do
             node --require ./tests-preload-v13.cjs "$suite"
           done
@@ -63,7 +64,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add bot-control.js v12.js online.js index.html build.py network-v13.py site-v13.py tests-preload-v13.cjs
+          git add bot-control.js v12.js online.js index.html build.py network-v13.py site-v13.py tests-preload-v13.cjs probe-v13.cjs
           if ! git diff --cached --quiet; then
             git commit -m 'Activate tested v13 tap controls and two-hand contact mechanics'
             git pull --rebase origin main
@@ -82,6 +83,7 @@ jobs:
             *.py
             *.md
             *test-results.json
+            rail-v12-comparison.json
             browser-check-v13/
             network-check-v13/
           retention-days: 7
