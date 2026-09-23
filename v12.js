@@ -147,7 +147,7 @@
   function move(e){
    const p=bridge.points.get(e.pointerId);if(!p)return false;
    const r=w.rods[p.id],a=bridge.axes(e.clientX,e.clientY,r.team),deltaSlide=a.slide-p.lastSlide,deltaTurn=a.turn-p.lastTurn;
-   const record=p.v12||(p.v12=newRecord(p));const elapsed=Math.max(1,e.timeStamp-p.lastT),turn=a.turn-p.startTurn;
+   if(Math.hypot(deltaSlide,deltaTurn)>2&&root.TouchlineV13?.cancelAssist(r)){p.theta=r.theta;p.startTurn=a.turn-deltaTurn;}const record=p.v12||(p.v12=newRecord(p));const elapsed=Math.max(1,e.timeStamp-p.lastT),turn=a.turn-p.startTurn;
    p.velocityX=deltaTurn/elapsed;p.slideTravel+=Math.abs(deltaSlide);p.intent.add(a.turn,e.timeStamp);p.lastInputTime=e.timeStamp;p.lastT=e.timeStamp;p.lastSlide=a.slide;p.lastTurn=a.turn;p.x=e.clientX;p.y=e.clientY;p.maxX=Math.max(p.maxX,Math.abs(turn));
    if(Math.abs(deltaTurn)>.35)p.lastMotion=w.time;
    r.targetY=clamp(r.targetY+deltaSlide/Math.max(300,g.renderer.s)*g.inputPrefs.slide,-r.limit,r.limit);r.slideScale=r.pinJoint?.5:1;

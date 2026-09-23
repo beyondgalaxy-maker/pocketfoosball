@@ -6,7 +6,7 @@ def build(root: Path) -> Path:
     html = (root / 'index.html').read_text(encoding='utf-8')
     html = html.replace('<link rel="stylesheet" href="styles.css">',
                         '<style>\n' + (root / 'styles.css').read_text(encoding='utf-8') + '\n</style>')
-    for name in ('engine.js', 'input.js', 'app.js', 'rolling.js', 'bot-control.js', 'v11.js', 'online.js', 'v12.js'):
+    for name in ('engine.js', 'input.js', 'app.js', 'rolling.js', 'bot-control.js', 'v11.js', 'online.js', 'v12.js', 'v13.js'):
         script = (root / name).read_text(encoding='utf-8')
         if '</script' in script.lower():
             raise ValueError(f'{name} contains a closing script sequence; escape it before bundling.')

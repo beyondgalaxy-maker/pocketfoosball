@@ -308,7 +308,7 @@
     const taps=new DoubleTap();
     root.addEventListener('pointerdown',e=>{if(g.state!=='playing'||doc.body.classList.contains('menu-open')||e.button>0)return;const id=currentRod(e);if(id!==null)taps.down(e.pointerId,id,e.clientX,e.clientY,e.timeStamp,e.pointerType);},{capture:true});
     root.addEventListener('pointermove',e=>taps.move(e.pointerId,e.clientX,e.clientY),{capture:true,passive:true});
-    root.addEventListener('pointerup',e=>{const id=taps.up(e.pointerId,e.clientX,e.clientY,e.timeStamp);if(id!==null)root.setTimeout(()=>{
+    root.addEventListener('pointerup',e=>{const id=taps.up(e.pointerId,e.clientX,e.clientY,e.timeStamp);if(id!==null&&!g.tapShotMode13)root.setTimeout(()=>{
       if(g.state!=='playing')return;const r=g.world.rods.find(r=>r.id===id);if(r?.heldBy!=null)return;
       neutral(F,g.world,r);toast.textContent='Ready · '+({GK:'Keeper',DEF:'Defense',MID:'Midfield',ATT:'Attack'}[r.role]);toast.hidden=false;toastUntil=performance.now()+1000;g.makeSound('touch',.10);
     });},{capture:true});
