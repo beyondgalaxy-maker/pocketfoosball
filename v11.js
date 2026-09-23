@@ -14,7 +14,7 @@
    const b=this.ball,side=b.y<C.radius+.0015?-1:b.y>C.width-C.radius-.0015?1:0;
    // Only a real, predominantly sideways figure contact at a sidewall. A
    // fast shot through open space, near-wall proximity, or a held pin is not it.
-   if(r&&kind==='foot'&&side&&c.ny*side>.72&&!r.pinJoint&&r.vy*side>.28&&b.z<C.radius+.005){
+   if(r&&kind==='foot'&&side&&c.ny*side>.72&&!r.pinJoint&&r.vy*side>.28&&Math.abs(r.omega)<2.5&&Math.abs(F.wrap(r.targetTheta-r.theta))<.09&&b.z<C.radius+.005){
     const current=this.__railImpact;
     if(!current||Math.abs(r.vy)>current.speed)this.__railImpact={rod:r,side,speed:Math.abs(r.vy),at:this.time};
    }
@@ -45,7 +45,7 @@
    const held=[];
    for(const [id,s] of this.__railYields||[]){
     const r=this.rods.find(r=>r.id===id);
-    if(!r||this.time>s.until||r.pinIntent||r.targetY* s.side<r.y*s.side-.01){this.__railYields.delete(id);continue;}
+    if(!r||this.time>s.until||r.pinIntent||Math.abs(r.omega)>2.5||Math.abs(F.wrap(r.targetTheta-r.theta))>.1||r.targetY* s.side<r.y*s.side-.01){this.__railYields.delete(id);continue;}
     held.push({r,y:r.y,v:r.vy});
    }
    move.call(this,dt);
@@ -76,6 +76,7 @@
   d.getElementById('overlayButtonsToggle').closest('label').after(row);
   function setFill(n){fill=Math.max(.03,Math.min(.3,Number(n)||.08));d.documentElement.style.setProperty('--overlay-fill',fill);d.getElementById('overlayOpacity').value=fill;d.getElementById('overlayOpacityValue').textContent=Math.round(fill*100)+'%';try{root.localStorage.setItem('pocketfoosball.overlayFill.v11',String(fill));}catch{}}
   d.getElementById('overlayOpacity').oninput=e=>setFill(e.target.value);setFill(fill);
+  root.addEventListener('hashchange',()=>{const code=root.TouchlineOnline?.parseRoom(root.location.hash);if(code&&g.online&&!g.online.session.active){d.getElementById('onlineCode').value=code;g.online.show();}});
   g.setOverlayOpacity=setFill;g.version='11.0.0';d.title='Pocket Foosball — Touchline 11';for(const e of d.querySelectorAll('.top-title,.menu-edition,.edition,.app-footer'))e.innerHTML=e.innerHTML.replace(/\b(?:08|09|10)\b/g,'11');
  }
  return {installPhysics,mount};
