@@ -1,50 +1,37 @@
-# Pocket Foosball — Touchline 09
+# Pocket Foosball — Touchline 10
 
-A browser foosball game for touchscreens, mouse and keyboard. Current version: **9.0.0**.
+**Play: https://beyondgalaxy-maker.github.io/pocketfoosball/?v=10**
 
-## Play online
+A browser foosball game for touchscreens, mouse and keyboard. Version **10.0.0** is live and checked without a login. Reload an already-open tab to load Touchline 10. No game account, installation or API key is required.
 
-**https://beyondgalaxy-maker.github.io/pocketfoosball/**
+## New in version 10
 
-The public HTTPS website is live. On September 22, 2026, the release check opened the actual website in fresh Chromium profiles without a login, verified all six runtime assets against the tested files, played in desktop and phone-sized viewports, and confirmed saved keybindings survive a full page reload. See [V9-NOTES.md](V9-NOTES.md) for measurements and limits.
+**Double-tap a control to ready that row.** Mouse double-click works too. Figures return to their ready angle, releasing an armed pin and cancelling a pending whip. The rod keeps its sideways position. Dragging or holding deliberately is not a double tap.
 
-No GitHub account, game account, installation or API key is needed to play. Reload an already-open tab to load the updated version; the title shows Touchline 09.
+**Menu → Display → Overlay buttons** floats the four normal handles and PIN button over the full-size table instead of shrinking it to make room for a dock. The small score, menu and restore controls remain visible. The preference is saved; pure Table only and the regular layout are still available. Local two-player adds a mirrored opposing dock.
 
-## Changes in version 9
+**Practice Re-serve is always available during play**, including Overlay and Table only, independent of whether the ball is reachable. It resets the current drill.
 
-**A caught ball settles instead of spinning in place.** Confirmed quiet foot contact gets bounded spin settling, and a supported pin resists residual twisting. When you walk a pin sideways, its visible rotation follows actual constrained centre travel. Free-field rolling, skids, backspin and airborne motion are not subjected to the new catch damping. This remains a tuned assisted-contact model, not real-table calibration.
+**Recovery handles small numerical chatter and bot stalls separately.** An unreachable ball that remains in a tiny area can now start the normal three-second recovery countdown even if its speed fluctuates slightly. A bot-held ball first gets physical clearing attempts. Repeated failure can trigger a separately labeled Bot possession timeout, followed by a three-second warning and a re-serve to the human. This last resort is a gameplay safeguard, not proof that every jam is solved physically. Pause, cancellation on progress and the user's auto-recovery setting are respected.
 
-**Editable keyboard controls.** Open **Menu → Controls → Keyboard · remap keys & sensitivity**. Click a key and press its replacement. Each Mint row has separate up, down and shoot bindings. Expand **Selection, modifiers & second player** for boost, soft-pass, rotation, pin, raise and selection bindings. Escape cancels; Backspace clears the selected binding. Duplicate keys are rejected with the conflicting action named. Restore default keys does not reset sensitivity. Bindings are saved on this browser; blocked storage falls back to the current tab and reports that limitation.
+**Medium is softer.** It selects basic direct shots or stick passes, not spray/brush/snake/tic-tac routines. Visual delay is 380 ms, changing to a new handle takes 320 ms, extrapolation is reduced and defense has a lower movement cap. Easy is slower again. Hard, Expert and Elite retain their core shot planning. The five personalities remain; difficulty is not a measured Elo rating.
+
+**PIN is deliberate.** In Overlay mode the visible PIN control replaces automatic hold-to-pin, so a gentle backwards touch need not become a supported pin. Arming PIN with the foot already close above the ball lowers the remaining small angle instead of making a long rotation. Quiet-catch spin settling and camera-correct rolling remain.
 
 ## Controls
 
-Drag an on-table handle or its dock to slide and rotate the whole rod. Landscape: up/down slides, left strikes for Mint. Portrait: left/right slides, up strikes for Mint. Coral's touch controls face the opposite player in shared-screen mode.
+Drag an on-table handle or its dock to slide and rotate a complete rod. Landscape: up/down slides and left strikes for Mint. Portrait: left/right slides and up strikes for Mint. Coral's controls face the opposite player in shared-screen mode.
 
-Default Mint keyboard rows, left to right in landscape:
+Default keyboard columns are Q/A/Z for Keeper, W/S/X for Defense, E/D/C for Midfield, and R/F/V for Attack. Shift or Space slides faster; Alt plus the shot key makes a soft pass. G pins/releases and B raises/lowers. **Menu → Controls → Keyboard · remap keys & sensitivity** changes these bindings. Duplicate bindings are rejected; preferences are saved independently from sensitivity. Mouse and keyboard work together.
 
-| Row | Slide | Shoot |
-| --- | --- | --- |
-| Keeper | Q / A | Z |
-| Defense | W / S | X |
-| Midfield | E / D | C |
-| Attack | R / F | V |
+A slow raise stays at its angle. A fast whip followed by release can auto-ready; a deliberate hold after the whip preserves the angle. The original slow/fast input rules remain.
 
-Default modifiers: **Shift or Space** slides faster, **Alt + shot** makes a soft pass. **1–4** selects a rod, **G** pins/releases, **B** raises/lowers and **P** pauses. These are editable. Escape stays available for the menu and Tab for navigation. Mouse and keyboard work together; a mouse-held rod takes priority over its keys. Fine speed, fast speed, shot power, pointer slide and pointer rotation have separate settings.
+## Verification and scope
 
-A slow deliberate raise stays at its angle. A fast whip followed by release can auto-ready. Holding still after a whip preserves the selected angle. Table only mode hides extra controls while retaining the handles and small menu/restore buttons.
+The final local source suites passed **173 numerical/input checks and 74 current browser checks**. The actual public HTTPS website passed **28 additional checks** in [this GitHub Actions run](https://github.com/beyondgalaxy-maker/pocketfoosball/actions/runs/35813254845), covering fresh desktop, portrait and landscape Chromium profiles, touch neutral reset, Overlay, practice reset, actual origin storage and reload. All runtime assets matched the tested release byte for byte.
 
-## Modes and opponents
+[V10-NOTES.md](V10-NOTES.md) records current mechanics, synthetic benchmarks, test changes and limitations. Earlier versioned reports are historical. This is an assisted simulation, not a calibrated real table, complete tournament-rules implementation or verified professional-strength bot. Physical phone hardware and Safari remain untested. Two-player means local/shared-screen, not network multiplayer.
 
-Solo, practice and local shared-screen two-player remain available. Bob favors quick attacks; Maya builds passes; Theo prefers controlled pins; Iris reads openings; Kai favors combinations. Every profile supports Easy, Medium, Hard, Expert and Elite. There are 13 move families, not every professional trick. These are fictional skill profiles, not measured Elo ratings.
+## Build
 
-A genuinely unreachable resting ball gets a visible auto-recovery countdown, followed by the one-second ready period. Reachable catches are not dead balls. Camera options include the side view, cross-section and Off.
-
-## Build and verification
-
-The repository root is the deployable static site. Run `python3 build.py` to generate standalone `touchline.html` and `site/index.html`.
-
-Run `node v8-tests.cjs` and `node v9-tests.cjs` for the 41 focused numerical/input checks in GitHub Actions. The downloadable source package also contains the larger regression suites: **157 numerical/input checks and 278 local Chromium browser checks passed for v9**.
-
-`site-smoke.py` checks the actual public website with Playwright, not an injected preview. The successful v9 run passed **27 public-site checks**, including normal page navigation, real origin storage, reload, keyboard release and emulated touch input. CI has read-only repository permissions. It does not alter Pages settings or store account credentials.
-
-See [V9-NOTES.md](V9-NOTES.md) for the current report; `VALIDATION.md` records the earlier v8 baseline. Physical-phone hardware and Safari remain untested. The game is an assisted simulation, not a calibrated table, full tournament-rules implementation or verified professional-strength opponent. Two-player is shared-screen, not online network multiplayer.
+The repository root is the static website. `python3 build.py` produces standalone `touchline.html` and `site/index.html`. The verification workflow runs v8/v9/v10 focused regressions and `site-v10.py` against the public site using read-only repository permissions. The downloadable source package includes the larger local regression and browser suites.
