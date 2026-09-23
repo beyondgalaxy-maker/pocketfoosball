@@ -29,8 +29,9 @@ jobs:
           for file in *.js; do node --check "$file"; done
       - name: Test rolling, recovery, adaptive controls and keybindings
         run: |
-          node v8-tests.cjs
+          node -e "const F=require('./engine');require('./rolling').installPhysics(F);require('./bot-control')(F);require('./v8-tests.cjs')"
           node v9-tests.cjs
+          node v10-tests.cjs
       - name: Build standalone game
         run: python3 build.py
       - name: Install browser for public-site verification
@@ -40,7 +41,7 @@ jobs:
           python3 -m playwright install --with-deps --only-shell chromium
       - name: Verify deployed website without login
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        run: python3 site-smoke.py
+        run: python3 site-v10.py
       - name: Save tested game and reports
         if: always()
         uses: actions/upload-artifact@v7
@@ -54,8 +55,8 @@ jobs:
             *.py
             *.md
             *test-results.json
-            site-check-results.json
-            site-check/*.png
+            site-v10-results.json
+            site-check-v10/*.png
             site/index.html
           retention-days: 7
           if-no-files-found: error
