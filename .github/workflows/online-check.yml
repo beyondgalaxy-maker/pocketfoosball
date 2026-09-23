@@ -1,0 +1,59 @@
+name: Verify online multiplayer
+on:
+  push:
+    branches: [main]
+    paths:
+      - online.js
+      - v11.js
+      - network-v11.py
+      - index.html
+      - .github/workflows/online-check.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: online-check-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  online:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Check syntax and prepare the staged page without publishing it
+        run: |
+          for file in *.js; do node --check "$file"; done
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          for name, expected in {'v11.js':'63309d376055b36e114eb95bb72c56575c9a507d','online.js':'4a02b74cd8bdfbb13af98717aa40e0086f658470'}.items():
+              data=Path(name).read_bytes()
+              actual=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+              print(name,actual)
+              assert actual==expected, 'Uploaded source differs from tested source'
+          p=Path('index.html');html=p.read_text()
+          if '<script src="v11.js"></script>' not in html:
+              html=html.replace('</body>','<script src="v11.js"></script>\n<script src="online.js"></script>\n</body>')
+              p.write_text(html)
+          PY
+      - name: Install real browser
+        run: |
+          python3 -m pip install playwright
+          python3 -m playwright install --with-deps --only-shell chromium
+      - name: Exercise real community signaling and WebRTC
+        run: python3 network-v11.py
+      - name: Save source and network verification evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pocketfoosball-online-check
+          path: |
+            *.js
+            *.html
+            *.css
+            network-v11.py
+            network-check-v11/
+          retention-days: 7
+          if-no-files-found: error
