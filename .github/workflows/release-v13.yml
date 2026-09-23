@@ -30,8 +30,8 @@ jobs:
           import hashlib
           expected = {
             'v13.js': 'f0906649db4d1cd7f6d5e20dc22c2dd3e671d390',
-            'v13-tests.cjs': '283f0ddd0638b5014a3a65d9e3c3f49232bf9b6c',
-            'upgrade-v13.py': 'da0772e52c00a9875a5d0eaa6959a211320eff83',
+            'v13-tests.cjs': 'fc633f500ce355c6f1f64c91bc99376ef6a740c7',
+            'upgrade-v13.py': '58cbb84dfdc77064763bfd5760789899156a697f',
             'prepare-v13.py': '2e5d85c374593b868540d760626d8b3ea563e277',
             'browser-v13.py': 'eddfe4857b513f2afce211fd637ff8bb82bb313f'
           }
