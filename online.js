@@ -9,7 +9,7 @@
  else{root.TouchlineOnline=api;const ready=()=>api.mount(root);if(root.document.readyState==='loading')root.document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();}
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
  'use strict';
- const VERSION=11,ROWS=[0,1,3,5],BALL=['x','y','z','vx','vy','vz','wx','wy','wz','qx','qy','qz','qw'];
+ const VERSION=12,ROWS=[0,1,3,5],BALL=['x','y','z','vx','vy','vz','wx','wy','wz','qx','qy','qz','qw'];
  const clamp=(n,a,b)=>Math.max(a,Math.min(b,n)),finite=n=>typeof n==='number'&&Number.isFinite(n),round=n=>Math.round(n*1e6)/1e6;
  const alphabet='23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
  function roomCode(crypto){const b=new Uint8Array(10);crypto.getRandomValues(b);return [...b].map(x=>alphabet[x%32]).join('');}
@@ -109,12 +109,12 @@
    try{
     if(!root.RTCPeerConnection)throw new Error('This browser does not support WebRTC. Try current Safari, Chrome, Edge, or Firefox.');
     const Peer=await loadPeer(root);if(generation!==session.generation)return;
-    const id='pocketfoosball11-'+(role==='host'?code:roomCode(root.crypto));const peer=new Peer(id,{debug:0,secure:true});session.peer=peer;session.phase='connecting';
+    const id='pocketfoosball12-'+(role==='host'?code:roomCode(root.crypto));const peer=new Peer(id,{debug:0,secure:true});session.peer=peer;session.phase='connecting';
     const timer=setTimeout(()=>{if(generation===session.generation&&!session.connected&&(role==='guest'||session.conn))failed('Could not connect. Check the code and both tabs. A firewall or the community connection service may be blocking this network.');},22000);
     peer.on('open',()=>{
      if(generation!==session.generation){peer.destroy();return;}
      if(role==='host'){session.phase='lobby';message('Room created. Share the invite, then both players press Ready.');}
-     else{message('Finding your friend’s table…');bind(peer.connect('pocketfoosball11-'+code,{serialization:'json',reliable:true,metadata:{v:VERSION,room:code}}),'guest',code);}
+     else{message('Finding your friend’s table…');bind(peer.connect('pocketfoosball12-'+code,{serialization:'json',reliable:true,metadata:{v:VERSION,room:code}}),'guest',code);}
     });
     peer.on('connection',c=>{if(role!=='host'||session.conn||c.metadata?.room!==code||c.metadata?.v!==VERSION){c.on('open',()=>c.close());return;}bind(c,'host',code);});
     peer.on('call',c=>c.close());
