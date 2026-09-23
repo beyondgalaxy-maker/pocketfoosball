@@ -1,3 +1,4 @@
+# Checks the current release, including the distinction between idle remote targets and held grips.
 name: Test Pocket Foosball
 on:
   push:
