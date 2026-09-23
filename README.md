@@ -1,59 +1,45 @@
-# Pocket Foosball — Touchline 12
+# Pocket Foosball — Touchline 13
 
-**Play: https://beyondgalaxy-maker.github.io/pocketfoosball/?v=12**
+**Play: https://beyondgalaxy-maker.github.io/pocketfoosball/?v=13**
 
-Touchscreen, mouse and keyboard foosball with private online matches. Refresh an old tab to get **12.0.0**. Both online players need v12 before creating a new room. No player account or installation is needed.
+Browser foosball for touch, mouse and keyboard, with Solo, Practice, shared-screen two-player and private Online matches. Refresh old tabs to load **13.0.0**; both online players need the same edition.
 
-## Small grips, full-height control
+## Tap, pass, hold
 
-Enable **Menu → Display → Overlay buttons**. In Solo, Practice and Online, each grip's invisible lane now reaches to the top of the game area. Start anywhere in that lane; the row remains yours until you lift your finger, even if you cross another lane. The actual on-table handles and menu/PIN/reset buttons remain usable. The table does not shrink.
+**Tap a grip or its full-height lane to shoot. Hold it for a firm block. Drag it for manual movement and angle control.** A tap must be short and stay close to its starting position; a hold or a drag does not fire a shot on release. Mouse clicks work too.
 
-Open **Menu → Controls → Your touch layout** for:
+Four small optional buttons work on your selected row: **SOFT PASS**, two **TIC** directions and **READY**. The pass makes a softer stroke; a TIC action places the figure beside a nearby slow ball and makes one sideways touch. It does not execute an entire combination. You choose the next touch and finish, and the actual foot must hit the ball. READY returns the ready angle without recentering the rod sideways.
 
-- **Where grips respond:** full height, bottom half, or buttons and table handles only.
-- **Button height:** 44–84 CSS pixels.
-- **Position & spacing:** strip width, lift above the bottom edge, and extra Midfield/Attack width.
+Hold briefly or drag to select a different row without shooting. A fresh manual grip interrupts an assisted stroke. Supported pins stay deliberate: use the existing forward flick for your rollover instead of a tap-generated snake.
 
-The preview updates as you change settings. **Show touch lanes** makes the invisible boundaries visible; it is off by default. **Try layout** resumes with Overlay buttons on. **Reset layout** preserves keybindings and sensitivity. Settings save in that browser, independently for each online participant. Narrow screens retain a minimum usable control size. The existing overlay-shading slider still controls transparency.
+Open **Menu → Controls → Your touch layout → Tap, pass, hold** to turn tap shooting or combination buttons off independently. With tap shooting enabled, READY replaces double-tap reset. Turn tap shooting off to restore the old double-tap behavior. Preferences save in this browser without changing your keys or sensitivities.
 
-Completely bare Table only mode retains normal on-table grips. Shared-screen two-player keeps its opposite-side controls instead of allowing one player to take the entire screen.
+## Held blocks and two hands
 
-## Deliberate forward flicks, not an automatic pinned-snake shortcut
+An unheld row has finite passive resistance, not a motor that constantly restores its angle. Gentle contacts usually leave it nearly still; harder impacts can lift the foot. The ball must pass through a real opening in the collidable geometry, never an arbitrary probability of going through a solid figure. Held rows are much firmer, not infinitely rigid. A slow intentional raise stays raised.
 
-Slow dragging remains manual distance-to-angle control. A sufficiently long, very fast, consistently forward swipe requests one accelerated finishing stroke from the figure's actual angle. It does not manufacture a reverse backswing or assign the ball a shot trajectory. A foot over a front-pinned ball rolls forward around the rod; an already wound-back foot can finish a shorter direct kick.
+Every bot personality at every difficulty now has **two actual hand slots**. Changing rods takes time: 480/340/240/190/160 ms for Easy/Medium/Hard/Expert/Elite. Observation delays remain separate. The unheld rows cannot keep powered targets, fire shots or maintain pins. The same two-powered-handle budget applies to human play, including keyboard and Online. A PIN or brief assisted stroke reserves a hand until released or finished.
 
-Forward is **left in landscape** and **up in portrait**, from each online player's own Mint-side view. To attempt a snake, establish a front pin with **PIN**, slide gently sideways, then make a decisive forward flick. The **FORWARD FLICK** cue means the gesture was recognized, not that contact or a goal is guaranteed.
+Bob, Maya, Theo, Iris and Kai retain their styles. Medium retains basic drives and stick passes rather than the advanced spray/tic-tac repertoire. Higher-level technique sequences still use the contact simulation; these are fictional skill profiles, not measured Elo ratings.
 
-Small twitches, backward swipes, shaking and mostly sideways motion do not arm this finish. A slower deliberate rotation releases a pin into manual control instead of calling the old automatic rollover. Holding a handle alone does not silently pin: use PIN or its custom key. **Fast-swipe finish** can be switched off in Your touch layout. Slow raises stay raised; auto-ready applies to an immediate release after a fast stroke, not a deliberate hold afterward. Keyboard shot commands and bot technique sequences retain their existing behavior.
+## Screen layout and controls
 
-## Sidewall rebound without immediate re-clamping
+Overlay buttons and invisible full-height lanes remain optional. Button height, strip position, width, lane reach and shading can be changed under **Your touch layout** and **Display**. The helper bar floats over the game without taking space from the table. Its shaded background follows the transparency setting. The normal on-table handles remain usable.
 
-With PIN off, bring the outer figure beside a ball at the rail, give a quick lateral tap into the contact, then relax or move away. The rod's brief compliant recoil no longer restores the old inward pressure immediately afterward. New hand motion is still accepted, while repeated unchanged network packets cannot restore the consumed preload.
+Keyboard defaults: **Q/A + Z** Keeper, **W/S + X** Defense, **E/D + C** Midfield, **R/F + V** Attack. Shift or Space slides faster; Alt + shot makes a soft pass. All keys are editable under **Controls → Keyboard**. Mouse, touch and keyboard can work together.
 
-This changes the grip/contact response, not the ball's state. It does not add random hops or launch stationary balls, and rotating forward/backward squeeze shots retain their separate response. The model is tuned assistance, not measured ball or bumper deformation.
+Practice retains its always-available **Re-serve** button. Unreachable balls have a visible recovery countdown, and persistent bot-possession failures have a separate last-resort recovery safeguard. There is no universal guarantee against every possible jam.
 
 ## Play a friend online
 
-Open **Menu → Match → Online → Create private room**, copy the invite and send it privately. The other player opens it, presses **Join**, and both press **Ready to play**. First to five wins; both can ready again for a rematch.
+Choose **Menu → Match → Online → Create private room**, copy the invitation and send it to your friend. They open it and press Join. Both press **Ready to play**. First to five wins; both can ready again for a rematch. Both players see themselves at the Mint end.
 
-Both players use their own familiar Mint-side view and controls. The host computes physics and scoring; the guest sends bounded rod intent. Keep both tabs open. Opening settings pauses the match. A lost connection freezes play; after a disconnect, leave and create a new room.
+Keep both tabs open. Menus pause the shared game. A lost connection freezes play; after disconnection, leave and create a new room. GitHub Pages serves the static website, while WebRTC and PeerJS's community service establish the live connection. No game account, camera or microphone is required. Restrictive networks, external service availability and latency can affect connection and play. This is private casual multiplayer, not ranked matchmaking.
 
-GitHub Pages hosts the files; online mode uses PeerJS community connection services and WebRTC. There is no camera/microphone request. Private rooms are not ranked matchmaking, and service availability, restrictive networks, latency and host responsiveness advantages remain relevant.
+## Build and tests
 
-## Existing controls and modes
+The repository root is the deployable site. `python3 build.py` bundles the code into `touchline.html` and `site/index.html`. Use the HTTPS site for online invitations; the bundled HTML supports offline modes.
 
-Double-tap a grip or double-click it with a mouse to return that row to its ready angle without recentering sideways. Default keyboard rows are **Q/A + Z**, **W/S + X**, **E/D + C**, and **R/F + V**. Shift or Space slides faster; Alt plus a shot makes a soft pass. All row keys and related controls are editable under **Menu → Controls → Keyboard · remap keys & sensitivity**.
+Current regression preload: `tests-preload-v13.cjs`. Generate the held-wall fixture report with `node --require ./tests-preload-v13.cjs probe-v13.cjs`, then run the v8 through v13 suites plus `rail-intent-tests.cjs` through that preload. The complete source download also contains the larger mechanics and input suites and the native browser checks.
 
-Solo retains five personalities and five difficulty settings, including Medium's basic repertoire and handle-switch delay. Practice always shows Re-serve during play. Unreachable balls have an announced recovery countdown, and persistent bot possession failures have a separate timeout safeguard. Bot skill was not expanded in v12.
-
-## Build and verify
-
-The repository root is the static website. `python3 build.py` embeds the game into `touchline.html` and `site/index.html`. Use the public HTTPS website for online invites.
-
-Run `node probe-v12.cjs`, `node v12-tests.cjs`, and `node rail-intent-tests.cjs`. The repository's verification workflow also runs the earlier v8–v11 suites with the final v12 physics installed. The full source download contains older baseline suites and `tests-preload-v12.cjs`; use `node -r ./tests-preload-v12.cjs <suite>.cjs` to run those against the current runtime. With Playwright/Chromium installed, `browser-v12.py` exercises local touch behavior; `site-v12.py` checks the actual deployed files and origin storage; `network-v12.py` connects two real WebRTC browser contexts. Set `GAME_URL` for the latter to use the public website.
-
-The final local build passed **221 numerical/input assertions** and **127 browser checks**. The controlled sidewall sweep left the ball free in **192/192 cases**, with a minimum clearance of 46.04 mm after one second. Eight additional fixtures verified unchanged network input could not re-clamp it. These are fixtures, not a claim about every possible ball state. See [V12-NOTES.md](V12-NOTES.md) for detailed results and limitations.
-
-The published build also passed **62 anonymous public-site checks and 36 real online-session checks** in https://github.com/beyondgalaxy-maker/pocketfoosball/actions/runs/35821649749. Its downloaded artifact matched the tested local runtime byte for byte.
-
-Physical phones, Safari and different home/carrier networks remain unverified. Online browser tests use two contexts on one runner. The game remains an assisted simulation, not calibrated real-table physics, an officially rated opponent or a full tournament-rules implementation.
+See **[V13-NOTES.md](V13-NOTES.md)** for measured results, fixture changes and the final public verification run. Earlier edition reports are historical and should not be treated as current benchmarks. Physical phone hardware, Safari and different home/carrier network routes remain unverified. The engine is a tuned, assisted simulation, not a calibrated commercial table or complete tournament-rules implementation.
