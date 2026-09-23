@@ -29,3 +29,7 @@ s=(ROOT/'site-v12.py').read_text().replace('site-check-v12','site-check-v13').re
 s=s.replace("'online.js','v12.js']", "'online.js','v12.js','v13.js']")
 (ROOT/'site-v13.py').write_text(s)
 (ROOT/'tests-preload-v13.cjs').write_text("const F=require('./engine');require('./rolling').installPhysics(F);require('./bot-control')(F);require('./v11').installPhysics(F);require('./v12').installPhysics(F);require('./v13').install(F);\n")
+
+# The old wall fixture commanded an unheld servo. A hand is now required.
+s=(ROOT/'probe-v12.cjs').read_text().replace('r.directGrip=true;', 'r.controlled=true;r.directGrip=true;')
+(ROOT/'probe-v13.cjs').write_text(s)
