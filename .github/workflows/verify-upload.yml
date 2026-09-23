@@ -19,7 +19,7 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
         with:
@@ -27,11 +27,11 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           for file in *.js; do node --check "$file"; done
-      - name: Test rolling, recovery, adaptive controls and keybindings
+      - name: Test contacts, recovery, input and multiplayer protocol
         run: |
-          node -e "const F=require('./engine');require('./rolling').installPhysics(F);require('./bot-control')(F);require('./v8-tests.cjs')"
-          node v9-tests.cjs
-          node v10-tests.cjs
+          for suite in v8-tests.cjs v9-tests.cjs v10-tests.cjs v11-tests.cjs; do
+            node -e "const F=require('./engine');require('./rolling').installPhysics(F);require('./bot-control')(F);require('./v11').installPhysics(F);require('./$suite')"
+          done
       - name: Build standalone game
         run: python3 build.py
       - name: Install browser for public-site verification
@@ -39,9 +39,14 @@ jobs:
         run: |
           python3 -m pip install playwright
           python3 -m playwright install --with-deps --only-shell chromium
-      - name: Verify deployed website without login
+      - name: Verify exact deployed assets and phone layouts without login
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        run: python3 site-v10.py
+        run: python3 site-v11.py
+      - name: Play a real online match on the public website
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          GAME_URL: https://beyondgalaxy-maker.github.io/pocketfoosball/?v=11
+        run: python3 network-v11.py
       - name: Save tested game and reports
         if: always()
         uses: actions/upload-artifact@v7
@@ -55,8 +60,8 @@ jobs:
             *.py
             *.md
             *test-results.json
-            site-v10-results.json
-            site-check-v10/*.png
+            site-check-v11/
+            network-check-v11/
             site/index.html
           retention-days: 7
           if-no-files-found: error
