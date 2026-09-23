@@ -60,7 +60,18 @@
    }
    return result;
   };
+  const reset12=p.reset;
+  p.reset=function(...args){this.__railConsumedTargets=new Map();return reset12.apply(this,args);};
   p.moveRods=function(dt){
+   // Repeated network snapshots are not fresh inward hand motion. Consume the
+   // released preload until the user actually changes their rod target.
+   const consumed=this.__railConsumedTargets||(this.__railConsumedTargets=new Map());
+   for(const [id,rest] of consumed){
+    const r=this.rods.find(x=>x.id===id);if(!r)continue;
+    if(r.pinIntent||Math.abs(r.targetTheta-rest.angle)>.0001){consumed.delete(id);continue;}
+    if(Math.abs(r.targetY-rest.blocked)<.00001)r.targetY=rest.y;
+    else if(Math.abs(r.targetY-rest.y)>.00001)consumed.delete(id);
+   }
    for(const [id,yielded] of this.__railYields||[]){
     if(!yielded.v12)continue;const r=this.rods.find(x=>x.id===id);if(!r)continue;
     // Fore/aft rotating squeezes are a different move: leave their existing
@@ -68,7 +79,7 @@
     if(Math.abs(r.targetTheta-yielded.angle)>.0001){yielded.v12=false;yielded.rotating=true;yielded.until=yielded.originalUntil;continue;}
     // Do not let the old into-wall target close the gap after passive recoil.
     // This resets grip preload, not ball state; the next finger motion is free.
-    if(this.time>=yielded.until&&(r.targetY-r.y)*yielded.side>0)r.targetY=r.y;
+    if(this.time>=yielded.until&&(r.targetY-r.y)*yielded.side>0){consumed.set(id,{blocked:r.targetY,y:r.y,angle:r.targetTheta});r.targetY=r.y;}
    }
    move.call(this,dt);
   };
