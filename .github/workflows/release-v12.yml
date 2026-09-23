@@ -3,11 +3,6 @@ on:
   push:
     branches: [main]
     paths:
-      - v12.js
-      - v12-tests.cjs
-      - probe-v12.cjs
-      - upgrade-v12.py
-      - prepare-v12-tests.py
       - .github/workflows/release-v12.yml
   workflow_dispatch:
 permissions:
@@ -28,7 +23,7 @@ jobs:
           python3 - <<'PY'
           import hashlib
           from pathlib import Path
-          expected = {'v12.js':'4091aaff95bbfc340870c618a0e540904407e828','app.js':'f6099ea43f88112828f976eb95d319cce3e1a6e5','online.js':'3ff51c6202b083e931cee2c2952fa3676f3409cb','index.html':'44babbaccb868b0ac82773cd09da13456983f1c6','build.py':'b336e3192d983a1581222c70116d6a9d059dc84f'}
+          expected = {'v12.js':'f22dbd9e2e8f42420d3500f5e53215c2e0c48fbe','app.js':'f6099ea43f88112828f976eb95d319cce3e1a6e5','online.js':'3ff51c6202b083e931cee2c2952fa3676f3409cb','index.html':'44babbaccb868b0ac82773cd09da13456983f1c6','build.py':'b336e3192d983a1581222c70116d6a9d059dc84f'}
           for name, target in expected.items():
               data=Path(name).read_bytes()
               actual=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
@@ -39,7 +34,7 @@ jobs:
         run: |
           for file in *.js; do node --check "$file"; done
           node probe-v12.cjs
-          for suite in v8-tests.cjs v9-tests.cjs v10-tests.cjs v11-tests.cjs v12-tests.cjs; do
+          for suite in v8-tests.cjs v9-tests.cjs v10-tests.cjs v11-tests.cjs v12-tests.cjs rail-intent-tests.cjs; do
             node -e "const F=require('./engine');require('./rolling').installPhysics(F);require('./bot-control')(F);require('./v11').installPhysics(F);require('./v12').installPhysics(F);require('./$suite')"
           done
           python3 build.py
@@ -54,11 +49,11 @@ jobs:
           start=$(git rev-parse HEAD)
           git fetch origin main
           test "$start" = "$(git rev-parse origin/main)" || { echo 'Main changed during validation. Re-run from the new revision.'; exit 1; }
-          git add app.js online.js index.html build.py site-v12.py network-v12.py
+          git add v12.js app.js online.js index.html build.py site-v12.py network-v12.py
           if ! git diff --cached --quiet; then
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git commit -m 'Activate tested v12 touch lanes, deliberate spins and wall release'
+            git commit -m 'Activate tested v12 controls and network-safe wall release'
             git push origin HEAD:main
           fi
       - name: Save exact staged build and test evidence
