@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f3e9"><meta name="description" content="Two little jellies. One big adventure. A free, cozy two-player platformer. Play on one keyboard or invite a friend online.">
+<title>Jelly Jam — better together.</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='7' y='10' width='50' height='47' rx='21' fill='%23ff8e9f'/%3E%3Ccircle cx='23' cy='32' r='4' fill='%232b3246'/%3E%3Ccircle cx='41' cy='32' r='4' fill='%232b3246'/%3E%3Cpath d='M25 43Q32 49 39 43' fill='none' stroke='%232b3246' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar"><a class="brand" href="#" id="brand" aria-label="Jelly Jam home"><span class="brandmark" aria-hidden="true">jj</span>jelly jam<span class="branddot">✳</span></a><span class="tagline">a little game for your favorite person</span><nav><button id="sound" class="quiet" aria-pressed="false">Sound off</button><button id="help" class="quiet">How to play <span aria-hidden="true">↗</span></button></nav></header>
+<main>
+<section id="home" class="home">
+<div class="intro"><div class="eyebrow"><span class="green-dot"></span> TWO PLAYERS · ONE HAPPY LITTLE ADVENTURE</div><h1>Small beans.<br>Big <span>teamwork.</span><i aria-hidden="true">✧</i></h1><p class="lead">Hop, boing, and figure it out together.<br>Because every great adventure needs a&nbsp;+1.</p>
+<div class="play-options"><button id="local" class="primary"><span class="button-icon">⌨</span><span>Play on one keyboard<small>Two buddies. One screen. Zero setup.</small></span><span class="arrow">→</span></button><button id="online" class="secondary"><span class="button-icon">◎</span><span>Play online with a friend<small>Make a room. Send a link. Meet your buddy.</small></span><span class="arrow">↗</span></button></div>
+<div class="little-links"><button id="solo" class="text-button">Just me? Try solo practice →</button><span>No download. No sign-up.</span></div>
+</div>
+<div class="preview"><div class="preview-top"><span><span class="green-dot"></span> A GOOD TIME, TOGETHER</span><span>01 / 10</span></div><canvas id="preview" width="1000" height="600" aria-label="Peach and Mint jellies in a playful pastel garden"></canvas><div class="preview-caption"><span><b class="peach-text">● Peach</b> + <b class="mint-text">◆ Mint</b></span><span>double the bounce. double the good vibes.</span></div><span class="sticker">made for<br><b>two ♡</b></span></div>
+<div class="feature-strip"><div><span>01</span><p><b>Learn in 5 seconds</b>Move. Jump. Be a good buddy.</p></div><div><span>02</span><p><b>Little levels, big “aha!”</b>10 handcrafted pockets of joy.</p></div><div><span>03</span><p><b>Oops is part of the fun</b>Instant rescues. Unlimited retries.</p></div></div>
+</section>
+<section id="play" class="play" hidden>
+<div class="gamebar"><div><span id="levelTag" class="eyebrow">THE ADVENTURE</span><h2 id="levelTitle">01 / Meet cute</h2></div><div class="game-stats"><span id="starCount" aria-label="Stars collected">☆ ☆ ☆</span><span id="timer">0:00</span></div><div class="game-actions"><button id="levels" class="quiet">Levels</button><button id="restart" class="quiet" title="Restart this level (R)">↻ Retry</button><button id="pause" class="quiet" title="Pause (Escape)">Ⅱ Pause</button></div></div>
+<div class="stage" id="stage"><canvas id="game" width="1000" height="600" tabindex="0" aria-label="Jelly Jam game. Peach uses A, D and W. Mint uses arrow keys. Collect three stars and reach the door together."></canvas><div id="announcement" class="announcement" aria-live="polite"></div><div id="stageVeil" class="stage-veil" hidden></div></div>
+<div class="understage"><span id="tip">Grab all 3 stars and reach the door together.</span><span id="networkStatus" class="connection-status">● Same keyboard</span></div>
+<div class="controls" id="keyboardControls"><span id="peachKeys"><b class="peach-text">● Peach</b> <kbd>A</kbd><kbd>D</kbd> move <kbd>W</kbd> jump</span><span class="together-note">♡ no buddy left behind</span><span id="mintKeys"><b class="mint-text">◆ Mint</b> <kbd>←</kbd><kbd>→</kbd> move <kbd>↑</kbd> jump</span></div>
+<div id="touchControls" class="touch-controls"><div class="touch-player" data-player="0"><span>● PEACH</span><div><button data-p="0" data-key="left" aria-label="Peach move left">←</button><button data-p="0" data-key="right" aria-label="Peach move right">→</button><button data-p="0" data-key="jump" aria-label="Peach jump" class="jump">↑</button></div></div><button id="swap" class="quiet" hidden>⇄ Switch buddy</button><div class="touch-player" data-player="1"><span>◆ MINT</span><div><button data-p="1" data-key="left" aria-label="Mint move left">←</button><button data-p="1" data-key="right" aria-label="Mint move right">→</button><button data-p="1" data-key="jump" aria-label="Mint jump" class="jump">↑</button></div></div></div>
+</section>
+</main>
+<footer><span>jelly jam <span aria-hidden="true">✳</span> better together.</span><span>Made for the “one more level” kind of friends.</span></footer>
+<dialog id="modal" aria-labelledby="modalTitle"><div id="modalContent"></div></dialog>
+<div id="toast" role="status"></div>
+<script src="engine.js"></script><script src="render.js"></script><script src="online.js"></script><script src="app.js"></script>
+</body></html>
