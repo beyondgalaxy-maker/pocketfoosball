@@ -38,6 +38,7 @@ try:
   page.click('#restart');page.keyboard.down('KeyD');page.wait_for_timeout(1700);page.keyboard.up('KeyD');page.wait_for_timeout(1100)
   check('Death restarts both in browser',page.evaluate('JellyJam.state.rescues>=1 && !JellyJam.state.stars.some(Boolean) && JellyJam.state.players[1].x===115'))
   page.click('#pause');t=page.evaluate('JellyJam.state.t');page.wait_for_timeout(220);check('Pause stops simulation',page.evaluate('JellyJam.state.t')==t);page.click('#resume')
+  page.evaluate("dispatchEvent(new PageTransitionEvent('pagehide',{persisted:true}));dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true}));");check('History restore reopens resume dialog',page.locator('#resume').is_visible());page.click('#resume')
   page.click('#brand');page.click('#leave');page.click('#solo');page.keyboard.press('Tab');check('Solo can switch', 'Mint selected' in page.inner_text('#peachKeys'))
   # Native simultaneous movement and jump touches, at narrow portrait and landscape sizes.
   for width,height in [(390,844),(844,390)]:
