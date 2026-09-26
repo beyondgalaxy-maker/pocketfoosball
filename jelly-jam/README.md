@@ -1,46 +1,65 @@
-# Jelly Jam
+# Jelly Jam 2 — The Portal Atlas
 
-**Small beans. Big teamwork.** An original two-player platformer about Peach and Mint, two little jellies who never leave a buddy behind.
+[Play in your browser](https://beyondgalaxy-maker.github.io/pocketfoosball/jelly-jam/)
 
-## Play
+Two buddies. Forty stages. One shared life. An original local and online co-op platform/puzzle game, isolated from the existing Pocket Foosball game in this repository.
 
-Open `index.html`, or serve this directory with `python3 -m http.server 8000`. No build, account, API key, or install is needed to play. Run `python3 build.py` for a portable, single-file `jelly-jam.html` edition.
+## Start playing
 
-- **One keyboard:** Peach uses A / D to move and W to jump. Mint uses left / right / up arrows. Space also jumps for Peach.
-- **Online:** Create a room and share its invite link or eight-character code. Your friend selects Join. The host is Peach and the guest is Mint; either keyboard layout controls your own buddy online.
-- **Solo practice:** Tab switches between the two buddies. The other one stays put. Touchscreens have a Switch button and support simultaneous fingers.
+Collect all three stars and bring both buddies to the rainbow door. A wrong-color hazard, a red beam, or a fall kills the **whole team**. After a short death animation, both restart from the level's beginning. Collected stars, keys, crates, doors, phase switches, crumbling platforms, and dash pickups reset. There are no mid-level checkpoints.
 
-Collect all three stars and bring both buddies to the rainbow door. Stand on both flower buttons together to permanently open the gate. Peach uses peach soda and circle platforms; Mint uses mint soda and diamond platforms. Yellow mushrooms bounce automatically. Jump together nearby for a super bounce. Flags save a shared checkpoint. Rescues preserve stars and opened gates. R retries; Escape pauses. Landscape is best on small phones.
+- **Local keyboard:** Peach uses A/D to move, W to jump, S or left Shift to dash. Mint uses left/right arrows, up to jump, down or right Shift to dash.
+- **Online:** create a room and send the invite link or eight-character code. Either keyboard layout controls your own buddy. Desktop and mobile players can play together.
+- **Touch:** the start-screen Auto / On / Off setting and header toggle choose whether controls appear. Auto checks the primary coarse pointer, rather than showing controls on every desktop. Each buddy has left, right, jump and lightning buttons. Portrait and landscape are supported; landscape gives the largest stage.
+- **Solo practice:** Tab switches buddies. Some late simultaneous-timing stages are deliberately built for two people.
 
-## Ten stages
+Hold jump for height, release for shorter hops. Synchronized jumps while close together give a buddy boost. Dash is unavailable until you touch a lightning crystal. Landing refills it; an airborne crystal can refill it for a second dash. Release before pressing dash again. Dash follows your movement/facing and does **not** make you invincible.
 
-Meet Cute, Better Together, Soda Pop, Mushroom Express, Pick Your Flavor, Cloud Commuters, Prickly Business, Sky High-five, Sherbet Shuffle, and The Big Jam. Every level is open from the start. Best times and fewest rescues are separate records stored in your browser when local storage is available.
+R retries; Escape pauses; Hint provides a nudge, then an optional revealed plan.
 
-## Online architecture and limits
+## The atlas
 
-The host runs the fixed-step 60 Hz simulation. The guest sends only directional/jump input. Sequenced, validated authoritative snapshots travel around 30 times per second through a reliable WebRTC data channel. The guest interpolates the display. Inputs expire after 350 ms without updates. Third players are rejected. Both players can pause and retry; the host chooses levels. Hidden tabs pause the game. Keep both game tabs open. Guests can rejoin a still-open room after disconnection, or continue on one keyboard.
+The chapter map has forty numbered, named, selectable stages. All are available from the beginning, with difficulty labels, completion marks, best times and medals.
 
-The official PeerJS 1.5.5 library loads only when online play is requested, from jsDelivr with unpkg as fallback. Public PeerServer signaling establishes the connection; gameplay uses WebRTC. Local and solo modes work without those services. No camera, microphone, analytics, game account, or paid backend is used.
+| Chapter | Stages | Focus |
+| --- | --- | --- |
+| The garden | 1–10 | The original routes, now with shared-death rules |
+| Portal orchard | 11–20 | Linked rings, return trips, keys, phase switching and dash |
+| Clockwork grove | 21–30 | Crate weights, hold/empty/exactly-one logic, beams, conveyors and crumbling ledges |
+| The thorn crown | 31–40 | Precision landings, short timing windows and combined multi-step puzzles |
 
-Some school/work firewalls, VPNs, symmetric NATs, restricted browsers, blockers, or service outages can prevent joining. This release does not provision a dedicated TURN relay and does not guarantee connectivity on every network. Keep room codes private: anyone with a code can take the second seat. Peers and signaling providers may see network metadata; room codes are not identity authentication.
+Earn a seal for each clear and a badge for each fully cleared chapter. Gold requires a zero-death clear under par; silver is a zero-death clear; bronze is a clear. Records are stored on each device. These rewards do not change physics or make an online partner stronger.
 
-For custom signaling/relay infrastructure, set `window.JELLY_PEER_OPTIONS` before loading `online.js`; it is passed to PeerJS. Never commit permanent TURN credentials. See https://peerjs.com/docs/ for the official documentation.
+## Puzzle language
 
-## Source and tests
+Portal labels identify their linked pair. Walk into an active ring to warp; jump over it to skip it. Color-marked rings accept only that buddy. Some rings need a key, a phase, or a held flower.
 
-`engine.js`: deterministic simulation and levels. `render.js`: original vector artwork. `online.js`: connection lifecycle. `app.js`: inputs, screens, audio, orchestration. `style.css` and `index.html`: responsive interface. Nothing in the existing Pocket Foosball game is replaced.
+Walk into crates to push them. Crates can stand in for a buddy on a flower. Filled flower rules require holding; hollow rules require leaving empty; split rules require **exactly one** of the listed flowers. Striped dials toggle the shared phase once per entry. Striped platforms show their required phase. Cracked platforms disappear after standing on them. Dashed beam outlines show an inactive beam; solid red is dangerous. The stage's teaching text and Hint button explain its particular rule.
+
+## Tab switching and reconnection
+
+Leaving a tab pauses the team and releases held controls. Returning requests a fresh authoritative snapshot. **Both players press Ready** before continuing; returning does not reset the level.
+
+The host owns the simulation. Inputs carry the level, world revision and death-round revision. Each new connection receives a session epoch, so old channels/packets cannot overwrite a new run. The original guest tab has a session seat token, allowing it to replace a stale channel after a reconnect. Actual channel drops retry automatically with backoff. Back/forward-cache suspension does not destroy the room object.
+
+Keep the host's page open. Closing/reloading the host or an operating-system process kill cannot preserve a serverless live room. Public PeerJS signaling and browser WebRTC are used, without a dedicated TURN relay; strict firewalls, VPNs, network changes or service outages can still prevent connecting. Local/solo play does not need the online service. Room codes/seat tokens are not identity authentication. Rejoin from the original tab where possible.
+
+## Develop and test
+
+No runtime package install or server backend is required.
 
 ```sh
-node tests/engine.cjs
-python3 build.py
-python3 -m pip install -r tests/requirements.txt
+python3 -m http.server 8000
+# open http://localhost:8000/jelly-jam/
+
+python3 jelly-jam/build.py
+node jelly-jam/tests/engine-v2.cjs
+python3 -m pip install -r jelly-jam/tests/requirements.txt
 python3 -m playwright install --with-deps --only-shell chromium
-JELLY_TEST_HTTP=1 python3 tests/smoke.py
-JELLY_NETWORK_CLOUD=1 python3 tests/network.py
+JELLY_TEST_HTTP=1 python3 jelly-jam/tests/browser-v2.py
+JELLY_NETWORK_CLOUD=1 python3 jelly-jam/tests/network-v2.py
 ```
 
-The 27 engine checks include input-only completion of all ten levels without teleporting or forced wins, plus isolated mechanics fixtures and seeded randomized inputs. Browser tests check real keyboard input, mobile layout, native two-player multitouch, key release, pause/retry, level selection, solo switching, and invalid-room feedback.
+The builder creates a portable `jelly-jam.html` containing local/solo assets. Online play loads PeerJS only when requested. Active sources are `engine.js`, `campaign.js`, `expansion.js`, `render-v2.js`, `online-v2.js`, `app-v2.js`, `style.css` and `v2.css`. Older v1 modules/tests remain as historical references and are not loaded by the v2 page.
 
-The cloud network test uses the production PeerJS client, public signaling service, independent browser contexts and real WebRTC to check movement, jumping, shared pause, level synchronization, third-player rejection, disconnection, reconnection and local fallback. Without `JELLY_NETWORK_CLOUD=1`, a test-only native WebRTC adapter uses in-process signaling; it is not shipped as a production transport. Restricted sandboxes may block ICE.
-
-GitHub Actions retains actual JSON reports and screenshots. Passing two-context tests cannot guarantee every browser, device, ISP or firewall.
+The engine suite includes separate mechanics fixtures, 120,000 seeded simulation steps, and **input-only zero-death solutions for all forty levels**. Browser tests exercise keyboard, short dash taps, the atlas, actual in-game shared death, responsive layouts, and native simultaneous touch dispatch. Network tests use separate browser contexts and real WebRTC; visibility state and BFCache lifecycle events are explicitly simulated in the harness. Emulation is not a physical-phone or every-router compatibility guarantee. CI keeps the actual JSON reports and screenshots.

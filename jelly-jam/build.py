@@ -1,12 +1,12 @@
-"""Build an offline-capable single HTML file, with online play loaded on demand."""
+"""Create a self-contained offline-capable game; online PeerJS loads on demand."""
 from pathlib import Path
-root=Path(__file__).resolve().parent
-html=(root/'index.html').read_text()
-html=html.replace('<link rel="stylesheet" href="style.css">','<style>\n'+(root/'style.css').read_text()+'\n</style>')
-for name in ['engine.js','render.js','online.js','app.js']:
-    source=(root/name).read_text()
-    if '</script' in source.lower():
-        raise ValueError(f'Unsafe script closing tag in {name}')
-    html=html.replace(f'<script src="{name}"></script>','<script>\n'+source+'\n</script>')
-(root/'jelly-jam.html').write_text(html)
-print('Built jelly-jam.html:',len(html.encode()),'bytes')
+ROOT=Path(__file__).resolve().parent
+html=(ROOT/'index.html').read_text()
+for name in ('style.css','v2.css'):
+    html=html.replace(f'<link rel="stylesheet" href="{name}">','<style>'+ (ROOT/name).read_text()+'</style>')
+for name in ('engine.js','campaign.js','expansion.js','render-v2.js','online-v2.js','app-v2.js'):
+    text=(ROOT/name).read_text()
+    assert '</script' not in text.lower(), name
+    html=html.replace(f'<script src="{name}"></script>','<script>'+text+'</script>')
+(ROOT/'jelly-jam.html').write_text(html)
+print('Built Jelly Jam 2:',len(html),'characters')

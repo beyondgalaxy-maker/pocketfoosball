@@ -1,4 +1,4 @@
-name: Jelly Jam checks
+name: Jelly Jam 2 checks
 on:
   push:
     paths:
@@ -16,40 +16,37 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
-      - name: Check source transfer and JavaScript
+      - name: Check exact source transfer and JavaScript
         run: |
           cd jelly-jam
           python3 - <<'PY'
           import hashlib, json
           from pathlib import Path
           for name, expected in json.loads(Path('source-hashes.json').read_text()).items():
-              data=Path(name).read_bytes()
-              actual=hashlib.sha256(data).hexdigest()
-              assert actual==expected, 'Source differs from locally tested file: '+name
+              assert hashlib.sha256(Path(name).read_bytes()).hexdigest()==expected, name
           PY
           for file in *.js; do node --check "$file"; done
-      - name: Solve all ten levels and check mechanics
-        run: node jelly-jam/tests/engine.cjs
-      - name: Build portable version and install test browser
+      - name: Solve all forty stages and check mechanics
+        run: node jelly-jam/tests/engine-v2.cjs
+      - name: Build and install test browsers
         run: |
           python3 jelly-jam/build.py
           python3 -m pip install -r jelly-jam/tests/requirements.txt
           python3 -m playwright install --with-deps --only-shell chromium
-      - name: Keyboard, mobile, native multitouch and screen tests
+      - name: Atlas, keyboard, mobile and simultaneous native touch
         env:
           JELLY_TEST_HTTP: '1'
-        run: python3 jelly-jam/tests/smoke.py
-      - name: Real online play through the public room service
+        run: python3 jelly-jam/tests/browser-v2.py
+      - name: Public PeerJS, real WebRTC, tab return and rejoin
         env:
           JELLY_NETWORK_CLOUD: '1'
-        run: python3 jelly-jam/tests/network.py
-      - name: Retain test results, screenshots and portable game
+        run: python3 jelly-jam/tests/network-v2.py
+      - name: Retain actual reports, screenshots and portable game
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: jelly-jam-tested
+          name: jelly-jam-2-tested
           path: |
-            jelly-jam/tests/*results.json
-            jelly-jam/tests/*.png
+            jelly-jam/tests/v2/*
             jelly-jam/jelly-jam.html
           retention-days: 14

@@ -1,79 +1,37 @@
-name: Jelly Jam live-site verification
+name: Jelly Jam 2 live-site verification
 on:
   push:
+    branches: [main]
     paths:
       - '.github/workflows/jelly-jam-live.yml'
+      - 'jelly-jam/tests/live-v2.py'
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   live:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
       - name: Install browser
         run: |
           python3 -m pip install -r jelly-jam/tests/requirements.txt
           python3 -m playwright install --with-deps --only-shell chromium
-      - name: Verify published files and play the actual website
-        run: |
-          python3 - <<'PY'
-          import hashlib, json, time, urllib.request
-          from pathlib import Path
-          from playwright.sync_api import sync_playwright
-          root=Path('jelly-jam')
-          url='https://beyondgalaxy-maker.github.io/pocketfoosball/jelly-jam/'
-          files=['index.html','style.css','engine.js','render.js','online.js','app.js']
-          for name in files:
-              expected=(root/name).read_bytes()
-              for attempt in range(12):
-                  try:
-                      request=urllib.request.Request(url+name+'?verify='+str(time.time()),headers={'Cache-Control':'no-cache'})
-                      with urllib.request.urlopen(request,timeout=15) as response:
-                          actual=response.read()
-                      assert hashlib.sha256(actual).digest()==hashlib.sha256(expected).digest(),name
-                      break
-                  except Exception:
-                      if attempt==11: raise
-                      time.sleep(5)
-          errors=[]
-          with sync_playwright() as p:
-              browser=p.chromium.launch(headless=True,args=['--no-sandbox'])
-              host=browser.new_context().new_page()
-              host.on('pageerror',lambda e:errors.append(str(e)))
-              host.goto(url,wait_until='networkidle')
-              assert host.title()=='Jelly Jam — better together.'
-              host.screenshot(path='jelly-jam-live.png',full_page=True)
-              host.click('#local')
-              x=host.evaluate('JellyJam.state.players[0].x')
-              host.keyboard.down('KeyD');host.wait_for_timeout(400);host.keyboard.up('KeyD')
-              assert host.evaluate('JellyJam.state.players[0].x')>x+40
-              host.click('#brand');host.click('#leave');host.click('#online');host.click('#hostRoom')
-              host.wait_for_selector('#roomCode',timeout=45000)
-              code=host.inner_text('#roomCode').replace(' ','')
-              guest=browser.new_context().new_page()
-              guest.on('pageerror',lambda e:errors.append(str(e)))
-              guest.goto(url+'#room='+code)
-              assert guest.input_value('#roomInput')==code
-              guest.click('#joinForm button')
-              guest.wait_for_function('JellyJam.connected',timeout=25000)
-              host.wait_for_function('JellyJam.connected',timeout=25000)
-              x=host.evaluate('JellyJam.state.players[1].x')
-              guest.keyboard.down('ArrowRight');guest.wait_for_timeout(500);guest.keyboard.up('ArrowRight')
-              host.wait_for_timeout(200)
-              assert host.evaluate('JellyJam.state.players[1].x')>x+50
-              assert not errors,errors
-              browser.close()
-          report={'passed':True,'url':url,'published_files_verified':files,'checks':['exact deployed asset hashes','live page loads','local keyboard movement','real online room creation','invite URL prefill','real online join','remote movement on public site'],'page_errors':errors}
-          Path('jelly-jam-live-results.json').write_text(json.dumps(report,indent=2))
-          print(json.dumps(report))
-          PY
+      - name: Verify exact deployed assets
+        run: python3 jelly-jam/tests/live-v2.py
+      - name: Play the public website on desktop and mobile layouts
+        env:
+          JELLY_TEST_URL: https://beyondgalaxy-maker.github.io/pocketfoosball/jelly-jam/
+        run: python3 jelly-jam/tests/browser-v2.py
+      - name: Real online play and tab-return regression on the public website
+        env:
+          JELLY_TEST_URL: https://beyondgalaxy-maker.github.io/pocketfoosball/jelly-jam/
+          JELLY_NETWORK_CLOUD: '1'
+        run: python3 jelly-jam/tests/network-v2.py
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: jelly-jam-live-verification
-          path: |
-            jelly-jam-live-results.json
-            jelly-jam-live.png
+          name: jelly-jam-2-live
+          path: jelly-jam/tests/v2/*
           retention-days: 14
