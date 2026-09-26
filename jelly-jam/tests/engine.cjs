@@ -1,0 +1,26 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),E=require('../engine.js');
+const {runLevel}=require('./routes.cjs');let passed=0;const results=[];
+function test(name,fn){fn();passed++;results.push(name);console.log('PASS',name);}
+const step=(s,n,a=[{},{}])=>{for(let i=0;i<n;i++)E.step(s,a);return s;};
+function place(p,x,y){Object.assign(p,{x,y,vx:0,vy:0,ground:false,standing:-1,held:false,coyote:0,buffer:0,inv:0});}
+test('Fresh state and serialization',()=>{for(let i=0;i<10;i++){const s=E.create(i);assert(E.validSnapshot(s));assert.deepEqual(E.snapshot(s),s);assert.equal(s.stars.length,3);}});
+test('Player inputs are independent',()=>{const s=E.create();step(s,30,[{right:true},{}]);assert(s.players[0].x>150);assert.equal(s.players[1].x,115);});
+test('Normal jump, variable height and landing',()=>{const a=E.create(),b=E.create();step(a,1,[{jump:true},{}]);step(b,1,[{jump:true},{}]);step(a,16,[{jump:true},{}]);step(b,16);assert(a.players[0].y<b.players[0].y-20);step(a,90);assert.equal(a.players[0].y,548);});
+test('No infinite air jumping',()=>{const s=E.create();step(s,1,[{jump:true},{}]);for(let i=0;i<25;i++)E.step(s,[{jump:i%2===0},{}]);assert(s.players[0].y>430);});
+test('Synchronized nearby jump gives extra height',()=>{const s=E.create();E.step(s,[{jump:true},{jump:true}]);assert(s.players.every(p=>p.vy<-700));assert(s.events.some(e=>e.type==='super'));});
+test('Walking off an edge preserves a short coyote jump',()=>{const s=E.create(3);place(s.players[0],209,548);s.players[0].ground=true;s.players[0].standing=0;s.players[0].vx=265;step(s,5,[{right:true},{}]);E.step(s,[{right:true,jump:true},{}]);assert(s.players[0].vy<0);});
+test('Matching soda is safe; wrong soda rescues only that buddy',()=>{const s=E.create(2);place(s.players[0],340,548);place(s.players[1],340,548);E.step(s,[{},{}]);assert.equal(s.rescues,1);assert.equal(s.players[0].x,340);assert.equal(s.players[1].x,115);});
+test('Colored stars reject the other buddy',()=>{const s=E.create(2);place(s.players[1],340,525);s.players[1].inv=1;E.step(s,[{},{}]);assert.equal(s.stars[0],false);place(s.players[0],340,525);E.step(s,[{},{}]);assert.equal(s.stars[0],true);});
+test('Colored platforms support only their matching buddy',()=>{const s=E.create(4);for(const p of s.players)place(p,260,450);step(s,12);assert.equal(s.players[0].y,458);assert(s.players[1].y>458);});
+test('Two simultaneous buttons latch the gate; one is not enough',()=>{const s=E.create(1);place(s.players[0],200,548);step(s,90);assert.equal(s.gateOpen,false);place(s.players[1],620,548);step(s,40);assert.equal(s.gateOpen,true);place(s.players[0],100,548);place(s.players[1],100,548);step(s,20);assert(s.gateOpen);});
+test('Closed gate blocks horizontal movement',()=>{const s=E.create(1);place(s.players[0],790,548);step(s,60,[{right:true},{}]);assert(s.players[0].x<=811);});
+test('Mushroom launch needs no extra button',()=>{const s=E.create(3);place(s.players[0],145,548);E.step(s,[{},{}]);assert(s.players[0].vy<-800);});
+test('Moving platform carries a resting passenger',()=>{const s=E.create(5),b=E.platformAt(E.levels[5].platforms[1],0);place(s.players[0],b.x+60,b.y);s.players[0].ground=true;s.players[0].standing=1;const offset=s.players[0].x-b.x;step(s,25);const now=E.platformAt(E.levels[5].platforms[1],s.t);assert(Math.abs(s.players[0].x-now.x-offset)<1);});
+test('Checkpoint is shared and preserves collected stars',()=>{const s=E.create(7);place(s.players[0],415,388);E.step(s,[{},{}]);assert(s.checkpoint);s.stars[0]=true;place(s.players[1],0,700);E.step(s,[{},{}]);assert.equal(s.players[1].x,439);assert(s.stars[0]);});
+test('Portal requires all stars and both players',()=>{const s=E.create();place(s.players[0],920,548);place(s.players[1],940,548);step(s,60);assert(!s.won);s.stars=[true,true,true];place(s.players[1],700,548);step(s,60);assert(!s.won);place(s.players[1],940,548);step(s,35);assert(s.won);const t=s.t;step(s,30);assert.equal(s.t,t);});
+test('Malformed and nonfinite network states are rejected',()=>{for(const bad of [null,{},[],{...E.create(),level:999},{...E.create(),t:NaN},{...E.create(),plates:[false]},{...E.create(),events:[null]}])assert(!E.validSnapshot(bad));const s=E.create();s.players[0].x=Infinity;assert(!E.validSnapshot(s));});
+test('Seeded chaotic inputs remain finite for all ten levels',()=>{let seed=41721;for(let level=0;level<10;level++){const s=E.create(level);for(let i=0;i<1800;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;E.step(s,[{left:!!(seed&1),right:!!(seed&2),jump:!!(seed&4)},{left:!!(seed&8),right:!!(seed&16),jump:!!(seed&32)}]);assert(E.validSnapshot(s));}}});
+const completions=[];
+for(let level=0;level<10;level++)test('Input-only route completes level '+(level+1),()=>{const r=runLevel(level,7200);assert(r.s.won,'Unfinished: '+JSON.stringify(r.phase));assert(r.s.stars.every(Boolean));completions.push({level:level+1,time:r.s.t,rescues:r.s.rescues});});
+const report={passed,checks:results,completions,note:'Route solver uses only left, right and jump. No state teleporting or forced wins. Separate unit tests place fixtures to isolate individual mechanics.'};fs.writeFileSync(__dirname+'/engine-results.json',JSON.stringify(report,null,2));console.log(passed+' tests passed');
