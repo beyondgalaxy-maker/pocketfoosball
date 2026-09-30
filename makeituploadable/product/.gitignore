@@ -1,0 +1,8 @@
+node_modules/
+site-dist/
+dist/
+test-results/
+native-test.json
+assets/icon.png
+assets/icon.icns
+assets/icon.ico

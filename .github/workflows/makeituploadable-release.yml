@@ -1,0 +1,173 @@
+name: MakeItUploadable website and installers
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'makeituploadable/product/**'
+      - '.github/workflows/makeituploadable-release.yml'
+permissions:
+  contents: write
+  pages: write
+concurrency:
+  group: makeituploadable-release
+  cancel-in-progress: true
+jobs:
+  website:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: makeituploadable/product
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned application dependencies
+        run: npm install --no-audit --no-fund
+      - name: Test core and build site
+        run: |
+          npm test
+          node scripts/icons.mjs
+          npm run build
+          npx playwright install --with-deps chromium
+          node tests/browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: miu-browser-checks
+          path: makeituploadable/product/test-results
+          retention-days: 3
+      - name: Publish only MakeItUploadable website files
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import shutil
+          from pathlib import Path
+          for p in Path('makeituploadable/product/site-dist').iterdir():
+              destination = Path('makeituploadable') / p.name
+              if p.is_dir(): shutil.copytree(p, destination, dirs_exist_ok=True)
+              else: shutil.copy2(p, destination)
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add makeituploadable/index.html makeituploadable/app.html makeituploadable/assets
+          git diff --cached --quiet || git commit -m 'Publish tested MakeItUploadable website [skip ci]'
+          git pull --rebase origin main
+          git push origin HEAD:main
+          gh api -X POST repos/${{ github.repository }}/pages/builds || true
+  desktop:
+    needs: website
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            args: --mac --arm64
+            id: mac-arm64
+          - os: macos-15-intel
+            args: --mac --x64
+            id: mac-x64
+          - os: windows-2025
+            args: --win --x64
+            id: win-x64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: makeituploadable/product
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install and build for this operating system
+        run: |
+          npm install --no-audit --no-fund
+          npm test
+          node scripts/icons.mjs
+          npm run build
+      - name: Build actual installer
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npx electron-builder ${{ matrix.args }} --publish never
+      - name: Launch packaged app and test actual conversions
+        run: node scripts/test-packaged.mjs
+      - name: Verify Mac bundle and disk image
+        if: runner.os == 'macOS'
+        run: |
+          APP=$(find dist -maxdepth 2 -name 'MakeItUploadable.app' -print -quit)
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          hdiutil verify dist/*.dmg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: miu-${{ matrix.id }}
+          path: |
+            makeituploadable/product/dist/*.dmg
+            makeituploadable/product/dist/*.exe
+            makeituploadable/product/native-test.json
+          retention-days: 3
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: miu-failure-${{ matrix.id }}
+          path: |
+            makeituploadable/product/native-test.json
+            makeituploadable/product/dist/builder-debug.yml
+          retention-days: 3
+  release:
+    needs: [website, desktop]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: miu-*
+          path: release-input
+      - name: Publish tested installers without changing Pocket Foosball releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          TAG: makeituploadable-v1.0.0-${{ github.run_number }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          mkdir release-out
+          find release-input -type f \( -name '*.dmg' -o -name '*.exe' \) -exec cp '{}' release-out/ \;
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for kind in ['mac-arm64','mac-x64','win-x64']:
+              report=json.loads(Path('release-input/miu-'+kind+'/native-test.json').read_text())
+              assert report.get('ok') and report.get('packaged'), (kind, report)
+          PY
+          (cd release-out && sha256sum *.dmg *.exe > SHA256SUMS.txt)
+          gh release create "$TAG" release-out/* --repo "$REPO" --target "$SOURCE_SHA" --prerelease --latest=false --title 'MakeItUploadable 1.0.0 preview' --notes 'Executable installers built on macOS Apple silicon, macOS Intel and Windows runners. Each packaged application was launched and completed image, PDF, ZIP, document printing and native video-speed sample checks. These are preview builds: Mac downloads are ad-hoc signed, not Developer ID signed or Apple notarized. Windows downloads are unsigned. Do not disable system security or force open a download marked damaged. The website is usable without installation. Third-party licenses ship with the app. No claim of support for every file variant.'
+          gh api repos/$REPO/releases/tags/$TAG > release-data.json
+          python - <<'PY'
+          import json, os, hashlib
+          from pathlib import Path
+          release=json.loads(Path('release-data.json').read_text())
+          wanted={'MakeItUploadable-Mac-arm64.dmg':'mac-arm64','MakeItUploadable-Mac-x64.dmg':'mac-x64','MakeItUploadable-Windows-Setup.exe':'win-x64'}
+          assets={}
+          for a in release['assets']:
+              if a['name'] not in wanted: continue
+              path=Path('release-out')/a['name']
+              assert a['state']=='uploaded' and a['size']==path.stat().st_size
+              assets[wanted[a['name']]]={'url':a['browser_download_url'],'bytes':a['size'],'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),'tested':True}
+          assert len(assets)==3
+          Path('makeituploadable/release.json').write_text(json.dumps({'version':'1.0.0 preview','tag':os.environ['TAG'],'assets':assets},indent=2)+'\n')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add makeituploadable/release.json
+          git commit -m 'Enable verified MakeItUploadable installer links [skip ci]'
+          git pull --rebase origin main
+          git push origin HEAD:main
+          gh api -X POST repos/$REPO/pages/builds || true
