@@ -1,0 +1,39 @@
+name: MakeItUploadable live website check
+on:
+  workflow_run:
+    workflows: ['MakeItUploadable website and installers']
+    types: [completed]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check-live-site:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install browser test tools
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/miu-live"
+          cd "$RUNNER_TEMP/miu-live"
+          npm init -y
+          npm install --no-audit --no-fund @playwright/test@1.55.1
+          npx playwright install --with-deps chromium
+      - name: Check the actual public website and every installer link
+        shell: bash
+        env:
+          TARGET_TAG: makeituploadable-v1.0.0-${{ github.event.workflow_run.run_number }}
+        run: node makeituploadable/product/tests/live.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: makeituploadable-live-check
+          path: live-check
+          retention-days: 3

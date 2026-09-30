@@ -1,0 +1,3 @@
+#draw-text-label{display:block;margin:0 0 14px}
+#draw-text-label[hidden]{display:none}
+@media(max-width:780px){.batchbar:has(#quick-save:not([hidden])){flex-wrap:wrap}.batchbar:has(#quick-save:not([hidden]))>div{flex-basis:100%}.batchbar:has(#quick-save:not([hidden]))>div>span{max-width:none}}

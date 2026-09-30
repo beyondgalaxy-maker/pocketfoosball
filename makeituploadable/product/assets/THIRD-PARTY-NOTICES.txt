@@ -1,0 +1,15 @@
+MakeItUploadable includes open-source components. Their individual license files are included with their installed packages. This notice is not a replacement for those licenses.
+
+Electron and Chromium: see LICENSE and LICENSES.chromium.html shipped with the runtime. https://www.electronjs.org/ and https://chromium.googlesource.com/chromium/src/
+FFmpeg and ffprobe: distributed through ffmpeg-static and @ffprobe-installer/ffprobe. These programs are separate executable processes. Their applicable GPL/LGPL licenses and build configurations must be observed when redistributing. Upstream source: https://ffmpeg.org/download.html and https://github.com/FFmpeg/FFmpeg . Binary packaging/build source: https://github.com/eugeneware/ffmpeg-static and https://github.com/ffprobe-installer/ffprobe-installer .
+PDF.js: Apache-2.0, https://github.com/mozilla/pdf.js
+pdf-lib: MIT, https://github.com/Hopding/pdf-lib
+fflate: MIT, https://github.com/101arrowz/fflate
+UTIF: MIT, https://github.com/photopea/UTIF.js
+Mammoth: BSD-2-Clause, https://github.com/mwilliamson/mammoth.js
+DOMPurify: Apache-2.0 OR MPL-2.0, https://github.com/cure53/DOMPurify
+ExcelJS: MIT, https://github.com/exceljs/exceljs
+heic2any and libheif: see their included component licenses, https://github.com/alexcorvi/heic2any
+exifr: MIT, https://github.com/MikeKovarik/exifr
+
+No advertising, analytics or remote conversion service is included. Font rendering uses the operating system; no commercial font files are distributed by this project.
