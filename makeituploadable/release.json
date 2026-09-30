@@ -1,0 +1,24 @@
+{
+  "version": "1.0.0 preview",
+  "tag": "makeituploadable-v1.0.0-2",
+  "assets": {
+    "mac-arm64": {
+      "url": "https://github.com/beyondgalaxy-maker/pocketfoosball/releases/download/makeituploadable-v1.0.0-2/MakeItUploadable-Mac-arm64.dmg",
+      "bytes": 193801472,
+      "sha256": "0b871a4d722bf70c1e4fc7e4a46681e3b15dfc7a8d9bd88704db33a6f007cf5c",
+      "tested": true
+    },
+    "mac-x64": {
+      "url": "https://github.com/beyondgalaxy-maker/pocketfoosball/releases/download/makeituploadable-v1.0.0-2/MakeItUploadable-Mac-x64.dmg",
+      "bytes": 225042779,
+      "sha256": "ce9c175d7f37a952764187f97b1d7db11794bf4af76dd20ab503d28b9494129e",
+      "tested": true
+    },
+    "win-x64": {
+      "url": "https://github.com/beyondgalaxy-maker/pocketfoosball/releases/download/makeituploadable-v1.0.0-2/MakeItUploadable-Windows-Setup.exe",
+      "bytes": 194483931,
+      "sha256": "c5e28aaff053b7b9c66379970730be176d603165cf3fca0dc7f993514be5368e",
+      "tested": true
+    }
+  }
+}
